@@ -1,3 +1,5 @@
+import { getServiceToken } from "./tokenService.js";
+
 const getConfig = () => ({
   baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
   apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
@@ -10,6 +12,14 @@ const getHeaders = () => ({
   "Content-Type": "application/json",
   "x-api-key": getConfig().apiKey,
 });
+
+const getBearerHeaders = async (): Promise<Record<string, string>> => {
+  const token = await getServiceToken();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 export async function searchUserByPhone(phoneNumber: string) {
   const { baseUrl } = getConfig();
@@ -139,7 +149,7 @@ export async function getSectionsCompletion(
     `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
     {
       method: "POST",
-      headers: getHeaders(),
+      headers: await getBearerHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
@@ -183,7 +193,7 @@ export async function updateSectionCompletion(
     `${baseUrl}/api/nw_application/application/user_section_completion/create_or_update/v1/`,
     {
       method: "POST",
-      headers: getHeaders(),
+      headers: await getBearerHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
@@ -217,7 +227,7 @@ export async function updateTemplateResponse(
     `${baseUrl}/api/nw_application/application/template_response/update/v1/`,
     {
       method: "POST",
-      headers: getHeaders(),
+      headers: await getBearerHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data,

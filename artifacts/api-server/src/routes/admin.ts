@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
 import { createUser } from "../services/authService.js";
+import { exchangeAuthCode, setTokens } from "../services/tokenService.js";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
@@ -49,6 +50,48 @@ router.get(
     } catch (err: any) {
       console.error("Get sales users error:", err);
       res.status(500).json({ error: "Failed", message: err.message });
+    }
+  }
+);
+
+// Exchange an SSO auth_code for access+refresh tokens
+router.post(
+  "/admin/set-auth-code",
+  requireAuth,
+  requireRole("admin"),
+  async (req: AuthRequest, res) => {
+    try {
+      const { authCode } = req.body;
+      if (!authCode) {
+        res.status(400).json({ error: "Bad Request", message: "authCode is required" });
+        return;
+      }
+      await exchangeAuthCode(authCode);
+      res.json({ success: true, message: "Auth code exchanged — service token is now active" });
+    } catch (err: any) {
+      console.error("Set auth code error:", err);
+      res.status(400).json({ error: "Failed", message: err.message });
+    }
+  }
+);
+
+// Directly set access + refresh tokens (paste from browser/Postman session)
+router.post(
+  "/admin/set-tokens",
+  requireAuth,
+  requireRole("admin"),
+  async (req: AuthRequest, res) => {
+    try {
+      const { accessToken, refreshToken, expiresIn } = req.body;
+      if (!accessToken || !refreshToken) {
+        res.status(400).json({ error: "Bad Request", message: "accessToken and refreshToken are required" });
+        return;
+      }
+      setTokens(accessToken, refreshToken, expiresIn ?? 3600);
+      res.json({ success: true, message: "Service tokens set — active until next restart or expiry" });
+    } catch (err: any) {
+      console.error("Set tokens error:", err);
+      res.status(400).json({ error: "Failed", message: err.message });
     }
   }
 );

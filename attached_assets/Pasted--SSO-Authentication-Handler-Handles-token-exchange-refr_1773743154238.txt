@@ -1,0 +1,190 @@
+/**
+ * SSO Authentication Handler
+ * Handles token exchange, refresh, and validation
+ */
+
+import { getNiatConfig } from "./config";
+import { getUserName } from "./niat-api-client";
+import { isAuthorizedInvigilator, getUserRole, getAuthorizedUser, addAuthorizedUser } from "./authorized-users";
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  user_id: string;
+}
+
+interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+/**
+ * Exchange auth_code for access tokens
+ */
+export async function exchangeAuthCode(
+  authCode: string,
+): Promise<TokenResponse> {
+  const config = getNiatConfig();
+  // Use ssoApiBaseUrl from config for login with auth_code
+  const url = `${config.ssoApiBaseUrl}/api/ib_user_accounts/login/auth_code/v1/?auth_code=${encodeURIComponent(authCode)}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": config.apiKey,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to exchange auth code: ${response.status} - ${errorText}`,
+    );
+  }
+
+  const data: TokenResponse = await response.json();
+  return data;
+}
+
+/**
+ * Refresh access token using refresh token
+ */
+export async function refreshAccessToken(
+  currentAccessToken: string,
+  refreshToken: string,
+): Promise<RefreshTokenResponse> {
+  const config = getNiatConfig();
+  // Use ssoApiBaseUrl from config for token refresh
+  const url = `${config.ssoApiBaseUrl}/api/ib_user_accounts/refresh_auth_tokens/v1/`;
+
+  // Build the data payload as a stringified JSON
+  const dataPayload = JSON.stringify({
+    refresh_token: refreshToken,
+  });
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${currentAccessToken}`,
+    },
+    body: JSON.stringify({
+      clientKeyDetailsId: 1,
+      data: `'${dataPayload}'`,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to refresh token: ${response.status} - ${errorText}`,
+    );
+  }
+
+  const data: RefreshTokenResponse = await response.json();
+  return data;
+}
+
+/**
+ * Validate that a user is authorized to use the platform
+ */
+export async function validateInvigilatorAccess(userId: string): Promise<{
+  authorized: boolean;
+  message: string;
+  role?: string;
+  name?: string;
+}> {
+  // Check if user exists in our authorized list
+  const user = await getAuthorizedUser(userId);
+
+  if (!user) {
+    // User doesn't exist - Auto-register as disabled
+    try {
+      // Fetch user profile from GraphQL
+      const profile = await import("./niat-api-client").then(m => m.getUserProfile(userId));
+
+      const name = profile?.name || "Unknown User";
+      const mobile = profile?.mobile || "";
+
+      // Add to DB as disabled invigilator
+      await addAuthorizedUser(userId, name, mobile, "invigilator", "disabled");
+
+      return {
+        authorized: false,
+        message: "Account created and pending approval. Please contact administrator.",
+      };
+    } catch (err) {
+      console.error("Auto-registration failed:", err);
+      return {
+        authorized: false,
+        message: "Access Denied. Auto-registration failed.",
+      };
+    }
+  }
+
+
+  // User exists - check if disabled
+  if (user.status === "disabled") {
+    return {
+      authorized: false,
+      message: "Your account is pending approval. Please contact an admin.",
+    };
+  }
+
+  // User is active - return role
+  return {
+    authorized: true,
+    message: "Authorized",
+    role: user.role,
+    name: user.name,
+  };
+}
+
+/**
+ * Get SSO login URL for frontend redirect
+ * Uses callback URL from environment config
+ */
+export function getSsoLoginUrl(): string {
+  const config = getNiatConfig();
+  console.log(`[SSO] Generating login URL with callback: ${config.callbackUrl}`);
+  const params = new URLSearchParams({
+    client_id: "ib_user_account_frontend",
+    call_back_url: config.callbackUrl,
+    mode: "otp",
+    WINDOW_MODE: "POPUP",
+  });
+
+  const fullUrl = `${config.ssoLoginUrl}?${params.toString()}`;
+  console.log(`[SSO] Full Login URL: ${fullUrl}`);
+  return fullUrl;
+}
+
+/**
+ * Logout user by calling NIAT logout API
+ * Uses the access_token from SSO login flow
+ */
+export async function logoutUser(accessToken: string): Promise<void> {
+  const config = getNiatConfig();
+  // Use ssoApiBaseUrl from config for logout
+  const url = `${config.ssoApiBaseUrl}/api/ib_user_accounts/user/logout/v1/`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      data: "\"{}\"",
+      clientKeyDetailsId: 1,
+    }),
+  });
+
+  if (!response.ok) {
+    // Don't throw - we still want to clear local tokens even if API fails
+  }
+}
