@@ -15,7 +15,10 @@ const getTemplateConfig = () => {
   };
 };
 
-export async function updateTemplate(userId: string, applicationId: string): Promise<void> {
+export async function updateTemplate(
+  userId: string,
+  applicationId: string,
+): Promise<void> {
   const { TEMPLATE_ID, SECTION_ID, FIELDS } = getTemplateConfig();
 
   if (!TEMPLATE_ID) throw new Error("TEMPLATE_ID is not configured");
