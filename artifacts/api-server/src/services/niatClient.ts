@@ -123,12 +123,13 @@ export async function getSectionsCompletion(
 
   const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID;
   const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID;
+  const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
   const applicationName = process.env.NIAT_APPLICATION_NAME;
 
   const dataPayload = JSON.stringify({
     user_id: userId,
     application_name_enum: applicationName,
-    section_entity_config_ids: [bookedSectionId, visitedSectionId].filter(
+    section_entity_config_ids: [personalSectionId,bookedSectionId, visitedSectionId].filter(
       Boolean,
     ),
   });
@@ -137,7 +138,7 @@ export async function getSectionsCompletion(
     "[getSectionsCompletion] userId:",
     userId,
     "sections:",
-    [bookedSectionId, visitedSectionId],
+    [bookedSectionId, visitedSectionId , personalSectionId],
   );
 
   const headers: Record<string, string> = {
