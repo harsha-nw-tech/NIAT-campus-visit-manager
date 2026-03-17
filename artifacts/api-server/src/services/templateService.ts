@@ -11,7 +11,7 @@ const getTemplateConfig = () => ({
   ],
 });
 
-export async function updateTemplate(applicationId: string): Promise<void> {
+export async function updateTemplate(userId: string, applicationId: string): Promise<void> {
   const { TEMPLATE_ID, SECTION_ID, FIELDS } = getTemplateConfig();
 
   if (!TEMPLATE_ID) throw new Error("TEMPLATE_ID is not configured");
@@ -23,6 +23,7 @@ export async function updateTemplate(applicationId: string): Promise<void> {
     }
 
     const payload = {
+      user_id: userId,
       application_id: applicationId,
       template_id: TEMPLATE_ID,
       section_id: SECTION_ID,
@@ -32,7 +33,7 @@ export async function updateTemplate(applicationId: string): Promise<void> {
 
     const dataString = `'${JSON.stringify(payload)}'`;
     console.log(
-      `[updateTemplate] Updating field ${field.FIELD_ID} for application ${applicationId}`,
+      `[updateTemplate] Updating field ${field.FIELD_ID} for user ${userId} application ${applicationId}`,
     );
     await updateTemplateResponse(applicationId, dataString);
     console.log(

@@ -3,9 +3,9 @@ import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
 import {
   getSectionsCompletion,
   updateSectionCompletion,
-  updateUserTemplateField,
   generateDirectLink,
 } from "../services/niatClient.js";
+import { updateTemplate } from "../services/templateService.js";
 import { db, auditLogsTable } from "@workspace/db";
 
 const router = Router();
@@ -134,7 +134,7 @@ router.post("/update-user-field", requireAuth, async (req: AuthRequest, res) => 
     }
 
     console.log(`[update-user-field] userId: ${userId} applicationId: ${applicationId}`);
-    await updateUserTemplateField(userId, applicationId);
+    await updateTemplate(userId, applicationId);
     console.log(`[update-user-field] Success for userId: ${userId}`);
 
     res.json({ success: true });
