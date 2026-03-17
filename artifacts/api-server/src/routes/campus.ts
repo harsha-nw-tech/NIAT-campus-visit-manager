@@ -93,12 +93,6 @@ router.post(
         await updateSectionCompletion(
           userId,
           applicationId,
-          bookedSectionId,
-          100,
-        );
-        await updateSectionCompletion(
-          userId,
-          applicationId,
           visitedSectionId,
           100,
         );

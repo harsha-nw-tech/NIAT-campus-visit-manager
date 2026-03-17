@@ -190,7 +190,7 @@ export async function updateSectionCompletion(
   );
 
   const res = await fetch(
-    `${baseUrl}/api/nw_application/application/user_section_completion/create_or_update/v1/`,
+    `${baseUrl}/api/nw_application/application/section_completion/create_or_update/v1/`,
     {
       method: "POST",
       headers: getHeaders(),
