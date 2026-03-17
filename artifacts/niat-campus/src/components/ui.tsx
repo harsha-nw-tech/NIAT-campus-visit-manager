@@ -13,18 +13,18 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", isLoading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: "bg-gradient-to-b from-primary to-blue-800 text-primary-foreground shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-900 border border-blue-600/50",
-      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-      outline: "border-2 border-slate-200 bg-transparent hover:bg-slate-50 text-slate-700",
-      ghost: "bg-transparent hover:bg-slate-100 text-slate-700",
-      destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md",
+      primary:   "bg-[#16A34A] hover:bg-[#15803D] text-white shadow-sm border border-[#16A34A] hover:border-[#15803D]",
+      secondary: "bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] border border-[#E5E7EB]",
+      outline:   "bg-white hover:bg-[#F9FAFB] text-[#1F2937] border border-[#D1D5DB] hover:border-[#9CA3AF]",
+      ghost:     "bg-transparent hover:bg-[#F3F4F6] text-[#6B7280] border border-transparent",
+      destructive: "bg-red-600 hover:bg-red-700 text-white border border-red-600 shadow-sm",
     };
-    
+
     const sizes = {
-      sm: "h-9 px-3 text-sm",
-      md: "h-11 px-6 text-base font-medium",
-      lg: "h-14 px-8 text-lg font-semibold rounded-xl",
-      icon: "h-11 w-11 justify-center",
+      sm:   "h-8 px-3 text-sm rounded-lg",
+      md:   "h-10 px-5 text-sm font-medium rounded-lg",
+      lg:   "h-11 px-6 text-base font-semibold rounded-xl",
+      icon: "h-9 w-9 justify-center rounded-lg",
     };
 
     return (
@@ -32,7 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isLoading || disabled}
         className={cn(
-          "inline-flex items-center justify-center rounded-lg transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16A34A] focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
           variants[variant],
           sizes[size],
           className
@@ -58,8 +58,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={cn(
-          "flex h-12 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary disabled:cursor-not-allowed disabled:opacity-50 hover:border-slate-300",
-          error && "border-destructive focus:ring-destructive/10 focus:border-destructive",
+          "flex h-10 w-full rounded-lg border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] transition-colors focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#9CA3AF] hover:border-[#9CA3AF]",
+          error && "border-red-500 focus:border-red-500 focus:ring-red-500/20",
           className
         )}
         {...props}
@@ -70,57 +70,84 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 // --- CARD ---
-export function Card({ className, children }: { className?: string, children: React.ReactNode }) {
+export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("glass-card rounded-2xl overflow-hidden", className)}>
+    <div className={cn("niat-card", className)}>
       {children}
     </div>
   );
 }
 
 // --- BADGE ---
-export function Badge({ children, variant = "default" }: { children: React.ReactNode, variant?: "default" | "success" | "warning" }) {
+export function Badge({
+  children,
+  variant = "default",
+  className,
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "success" | "warning" | "error";
+  className?: string;
+}) {
   const variants = {
-    default: "bg-slate-100 text-slate-700 border-slate-200",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    default: "bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]",
+    success: "bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]",
     warning: "bg-amber-50 text-amber-700 border-amber-200",
+    error:   "bg-red-50 text-red-700 border-red-200",
   };
   return (
-    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors", variants[variant])}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+        variants[variant],
+        className
+      )}
+    >
       {children}
     </span>
   );
 }
 
 // --- MODAL ---
-export function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode }) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <AnimatePresence>
       {isOpen && (
         <>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-[#1F2937]"
             onClick={onClose}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden pointer-events-auto border border-slate-100"
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.18 }}
+              className="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden pointer-events-auto border border-[#E5E7EB]"
             >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-                <h2 className="text-xl font-display font-bold text-slate-800">{title}</h2>
-                <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                  <X size={20} />
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+                <h2 className="text-base font-semibold text-[#1F2937]">{title}</h2>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 text-[#9CA3AF] hover:text-[#6B7280] hover:bg-[#F3F4F6] rounded-lg transition-colors"
+                >
+                  <X size={18} />
                 </button>
               </div>
-              <div className="p-6">
-                {children}
-              </div>
+              <div className="p-6">{children}</div>
             </motion.div>
           </div>
         </>

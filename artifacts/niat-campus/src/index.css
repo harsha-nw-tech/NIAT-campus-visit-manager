@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -24,61 +24,85 @@
 }
 
 :root {
-  --background: 210 40% 98%; /* Very light slate */
-  --foreground: 222 47% 11%;
-  
-  /* Deep professional indigo/blue */
-  --primary: 226 71% 40%;
-  --primary-foreground: 210 40% 98%;
-  
-  --secondary: 214 32% 91%;
-  --secondary-foreground: 222 47% 11%;
-  
-  --muted: 214 32% 91%;
-  --muted-foreground: 215 16% 47%;
-  
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
-  
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
-  
-  --border: 214 32% 91%;
-  --ring: 226 71% 40%;
-  
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-}
+  /* #F5F7FA */
+  --background: 220 20% 97%;
+  /* #1F2937 */
+  --foreground: 220 26% 14%;
 
-.dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --primary: 226 71% 60%;
-  --card: 222 47% 11%;
-  --border: 216 34% 17%;
+  /* Primary green: #16A34A */
+  --primary: 142 76% 36%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 14% 93%;
+  --secondary-foreground: 220 26% 14%;
+
+  --muted: 220 14% 93%;
+  /* #6B7280 */
+  --muted-foreground: 220 9% 46%;
+
+  /* #F3E8D8 */
+  --accent: 33 53% 90%;
+  --accent-foreground: 220 26% 14%;
+
+  /* Destructive */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* #D1D5DB */
+  --border: 220 13% 84%;
+  /* #16A34A */
+  --ring: 142 76% 36%;
+
+  /* Card: #FFFFFF */
+  --card: 0 0% 100%;
+  --card-foreground: 220 26% 14%;
 }
 
 @layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
   body {
     @apply bg-background text-foreground antialiased;
-    background-image: url('/images/bg-pattern.png');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
+    font-family: var(--font-sans);
+    background-color: #F5F7FA;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply font-bold tracking-tight text-slate-900;
+    color: #1F2937;
   }
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-white/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-slate-200/50;
+  .niat-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04);
   }
-  
-  .text-gradient {
-    @apply bg-gradient-to-br from-slate-900 to-slate-600 bg-clip-text text-transparent;
+
+  .niat-card-hover {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s ease;
+  }
+
+  .niat-card-hover:hover {
+    box-shadow: 0 4px 12px 0 rgba(0,0,0,0.08);
+  }
+
+  .text-primary-green {
+    color: #16A34A;
+  }
+
+  .bg-primary-green {
+    background-color: #16A34A;
+  }
+
+  .border-primary-green {
+    border-color: #16A34A;
   }
 }
