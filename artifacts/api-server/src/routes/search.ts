@@ -12,25 +12,38 @@ router.post("/search-user", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    const data = await searchUserByPhone(phoneNumber);
-    console.log("[SEARCH] NIAT create response:", JSON.stringify(data));
+    // Step 1: create/find user — returns raw user_id + application_id
+    const createResp = await searchUserByPhone(phoneNumber);
+    console.log("[SEARCH] create response:", JSON.stringify(createResp));
 
-    const userId = data?.user_id ?? data?.userId ?? data?.data?.user_id ?? null;
-    const applicationId = data?.application_id ?? data?.applicationId ?? data?.data?.application_id ?? null;
+    const rawUserId = createResp?.user_id ?? null;
+    const applicationId = createResp?.application_id ?? null;
 
-    // Fetch user profile via GraphQL to get name and determine if new user
+    // Step 2: fetch GraphQL profile — gives canonical user_id (matches gamma panel), name, mobile
+    let userId = rawUserId;
     let name: string | null = null;
+    let mobile: string | null = null;
     let language: string | null = null;
-    if (userId) {
-      const profile = await getUserProfile(userId);
+
+    if (rawUserId) {
+      const profile = await getUserProfile(rawUserId);
+      console.log("[SEARCH] profile:", JSON.stringify(profile));
+      // Prefer the user_id from GraphQL — it is the canonical ID shown in the gamma panel
+      if (profile.userId) userId = profile.userId;
       name = profile.name;
+      mobile = profile.mobile;
       language = profile.language;
     }
 
-    // A user is "new" if they have no name set (never completed profile)
+    // A user is "new" if they have no name set in their profile (never completed it)
     const isNewUser = !name;
 
-    const studentInfo = { name, email: null as string | null, phone: phoneNumber, language };
+    const studentInfo = {
+      name,
+      email: null as string | null,
+      phone: mobile || phoneNumber,  // prefer profile phone (normalized by NIAT)
+      language,
+    };
 
     res.json({ isNewUser, userId, applicationId, studentInfo });
   } catch (err: any) {

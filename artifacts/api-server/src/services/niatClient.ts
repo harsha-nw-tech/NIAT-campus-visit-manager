@@ -2,6 +2,8 @@ const getConfig = () => ({
   baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
   apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
   clientKeyDetailsId: (process.env.COMMON_DATA_CLIENT_KEY_DETAILS_ID || "").trim(),
+  applicationName: (process.env.NIAT_APPLICATION_NAME || "").trim(),
+  identity: (process.env.NIAT_IDENTITY || "").trim(),
 });
 
 const getHeaders = () => ({
@@ -9,8 +11,16 @@ const getHeaders = () => ({
   "x-api-key": getConfig().apiKey,
 });
 
-export async function searchUserByPhone(phoneNumber: string) {
-  const { baseUrl } = getConfig();
+/**
+ * STEP 1: Create or find user by phone number.
+ * Returns user_id and application_id from NIAT.
+ * Note: This always succeeds (creates a new user if not found).
+ */
+export async function createUserByPhone(
+  phoneNumber: string
+): Promise<{ user_id: string; application_id: string }> {
+  const { baseUrl, applicationName, identity } = getConfig();
+
   const res = await fetch(
     `${baseUrl}/api/nw_application/user/phone_number/application/create/v1/`,
     {
@@ -20,12 +30,14 @@ export async function searchUserByPhone(phoneNumber: string) {
         phone_number: phoneNumber,
         country_code: "91",
         application_details: {
-          application_name_enum: process.env.NIAT_APPLICATION_NAME ,
-          identity: process.env.NIAT_IDENTITY,
+          application_name_enum: applicationName,
+          identity,
+          metadata: JSON.stringify({ application_type: "OFFLINE_EXAM_SUBMISSION" }),
         },
       }),
     }
   );
+
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`NIAT API error (${res.status}): ${text}`);
@@ -33,15 +45,29 @@ export async function searchUserByPhone(phoneNumber: string) {
   return res.json();
 }
 
-export async function getUserProfile(userId: string): Promise<{ name: string | null; language: string | null }> {
+// backwards-compat alias
+export const searchUserByPhone = createUserByPhone;
+
+/**
+ * STEP 2: Fetch user profile via GraphQL.
+ * Returns the canonical user_id (matches gamma panel), name, mobile, and language.
+ * A null/empty name means the user is new (never completed their profile).
+ */
+export async function getUserProfile(userId: string): Promise<{
+  userId: string | null;
+  name: string | null;
+  mobile: string | null;
+  language: string | null;
+}> {
   const { baseUrl } = getConfig();
 
   const query = `
-    query GetUserName($userId: String) {
+    query GetUserProfile($userId: String) {
       user_profile_details(user_id: $userId) {
         success_response {
           user_id
           name
+          phone_number
           preferred_languages
         }
       }
@@ -57,27 +83,37 @@ export async function getUserProfile(userId: string): Promise<{ name: string | n
 
     if (!res.ok) {
       console.warn(`[getUserProfile] HTTP ${res.status}`);
-      return { name: null, language: null };
+      return { userId: null, name: null, mobile: null, language: null };
     }
 
     const data = await res.json();
     console.log("[getUserProfile] raw:", JSON.stringify(data));
     const profile = data?.data?.user_profile_details?.success_response;
-    const rawLang = profile?.preferred_languages;
-    const language = Array.isArray(rawLang) ? (rawLang[0] || null) : (rawLang || null);
-    return { name: profile?.name || null, language };
+
+    if (!profile) return { userId: null, name: null, mobile: null, language: null };
+
+    const rawLang = profile.preferred_languages;
+    const language = Array.isArray(rawLang)
+      ? (rawLang[0] || null)
+      : (rawLang || null);
+
+    return {
+      userId: profile.user_id || null,
+      name: profile.name || null,
+      mobile: profile.phone_number || null,
+      language,
+    };
   } catch (err) {
     console.warn("[getUserProfile] error:", err);
-    return { name: null, language: null };
+    return { userId: null, name: null, mobile: null, language: null };
   }
 }
 
 export async function getSectionsCompletion(userId: string, applicationId: string, accessToken?: string) {
-  const { baseUrl, clientKeyDetailsId } = getConfig();
+  const { baseUrl, clientKeyDetailsId, applicationName } = getConfig();
 
-  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID ;
-  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID ;
-  const applicationName = process.env.NIAT_APPLICATION_NAME;
+  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID;
+  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID;
 
   const dataPayload = JSON.stringify({
     user_id: userId,
@@ -116,8 +152,7 @@ export async function updateSectionCompletion(
   sectionEntityConfigId: string,
   completionValue: number
 ) {
-  const { baseUrl, clientKeyDetailsId } = getConfig();
-  const applicationName = process.env.NIAT_APPLICATION_NAME || "NIAT";
+  const { baseUrl, clientKeyDetailsId, applicationName } = getConfig();
 
   const dataPayload = JSON.stringify({
     user_id: userId,
@@ -151,10 +186,7 @@ export async function updateTemplateResponse(applicationId: string, data: string
     {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({
-        clientKeyDetailsId,
-        data,
-      }),
+      body: JSON.stringify({ clientKeyDetailsId, data }),
     }
   );
   if (!res.ok) {
