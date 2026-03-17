@@ -42,7 +42,6 @@ export default function SalesDashboard() {
         setSearchResult(data);
         setSearchedPhone(variables.data.phoneNumber);
         setCompletionData(null);
-        setFieldUpdated(false);
         if (!data.isNewUser && data.userId && data.applicationId) {
           getCompletionMutation.mutate({
             data: { userId: data.userId, applicationId: data.applicationId }
