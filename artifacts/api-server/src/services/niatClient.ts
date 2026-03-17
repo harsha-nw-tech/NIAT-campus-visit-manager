@@ -18,7 +18,7 @@ export async function searchUserByPhone(phoneNumber: string) {
       headers: getHeaders(),
       body: JSON.stringify({
         phone_number: phoneNumber,
-        country_code: "91",
+        country_code: "+91",
         application_details: {
           application_name_enum: process.env.NIAT_APPLICATION_NAME ,
           identity: process.env.NIAT_IDENTITY,
