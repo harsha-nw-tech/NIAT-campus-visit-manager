@@ -1,4 +1,3 @@
-
 const getConfig = () => ({
   baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
   apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
@@ -238,14 +237,20 @@ export async function updateTemplateResponse(
 
   const text = await res.text();
   console.log(`[updateTemplateResponse] status ${res.status}:`, text);
-
+  console.log(
+    `[updateTemplateResponse] api:`,
+    `${baseUrl}/api/nw_application/application/user/template_response/update/v1/`,
+  );
   if (!res.ok) {
     throw new Error(`Template API error (${res.status}): ${text}`);
   }
   return JSON.parse(text);
 }
 
-export async function updateUserTemplateField(userId: string, applicationId: string) {
+export async function updateUserTemplateField(
+  userId: string,
+  applicationId: string,
+) {
   const { baseUrl } = getConfig();
   const templateId = (process.env.TEMPLATE_ID || "").trim();
   const sectionId = (process.env.SECTION_ID || "").trim();
@@ -275,7 +280,9 @@ export async function updateUserTemplateField(userId: string, applicationId: str
   console.log(`[updateUserTemplateField] status ${res.status}:`, text);
 
   if (!res.ok) {
-    throw new Error(`User template field update failed (${res.status}): ${text}`);
+    throw new Error(
+      `User template field update failed (${res.status}): ${text}`,
+    );
   }
   return JSON.parse(text);
 }
