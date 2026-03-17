@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, Link as LinkIcon, CheckCircle2, Copy, MessageCircle, MapPin, User, Phone, Briefcase, Loader2 } from "lucide-react";
+import { Search, UserPlus, Link as LinkIcon, CheckCircle2, Copy, MessageCircle, MapPin, User, Phone, Briefcase, Loader2, Globe } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearchUser, useGetCompletion, useGenerateLink, useMarkVisited, SearchUserResponse, GetCompletionResponse } from "@workspace/api-client-react";
@@ -183,6 +183,12 @@ export default function SalesDashboard() {
                           <Briefcase className="w-4 h-4" />
                           <span className="text-sm font-mono bg-slate-100 px-2 py-1 rounded">App ID: {searchResult.applicationId}</span>
                         </div>
+                        {searchResult.studentInfo?.language && (
+                          <div className="flex items-center gap-3 text-slate-600">
+                            <Globe className="w-4 h-4" />
+                            <span className="capitalize">{searchResult.studentInfo.language}</span>
+                          </div>
+                        )}
                       </div>
                     </Card>
 

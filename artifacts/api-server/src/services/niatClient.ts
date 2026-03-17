@@ -33,6 +33,45 @@ export async function searchUserByPhone(phoneNumber: string) {
   return res.json();
 }
 
+export async function getUserProfile(userId: string): Promise<{ name: string | null; language: string | null }> {
+  const { baseUrl } = getConfig();
+
+  const query = `
+    query GetUserName($userId: String) {
+      user_profile_details(user_id: $userId) {
+        success_response {
+          user_id
+          name
+          preferred_languages
+        }
+      }
+    }
+  `;
+
+  try {
+    const res = await fetch(`${baseUrl}/graphql/`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ query, variables: { userId } }),
+    });
+
+    if (!res.ok) {
+      console.warn(`[getUserProfile] HTTP ${res.status}`);
+      return { name: null, language: null };
+    }
+
+    const data = await res.json();
+    console.log("[getUserProfile] raw:", JSON.stringify(data));
+    const profile = data?.data?.user_profile_details?.success_response;
+    const rawLang = profile?.preferred_languages;
+    const language = Array.isArray(rawLang) ? (rawLang[0] || null) : (rawLang || null);
+    return { name: profile?.name || null, language };
+  } catch (err) {
+    console.warn("[getUserProfile] error:", err);
+    return { name: null, language: null };
+  }
+}
+
 export async function getSectionsCompletion(userId: string, applicationId: string, accessToken?: string) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
 

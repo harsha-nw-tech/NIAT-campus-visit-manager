@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth, AuthRequest } from "../middlewares/auth.js";
-import { searchUserByPhone } from "../services/niatClient.js";
+import { searchUserByPhone, getUserProfile } from "../services/niatClient.js";
 
 const router = Router();
 
@@ -13,21 +13,26 @@ router.post("/search-user", requireAuth, async (req: AuthRequest, res) => {
     }
 
     const data = await searchUserByPhone(phoneNumber);
-    console.log("[SEARCH] Raw NIAT response keys:", JSON.stringify(Object.keys(data || {})));
-    console.log("[SEARCH] Full response:", JSON.stringify(data));
+    console.log("[SEARCH] NIAT create response:", JSON.stringify(data));
 
-    const isNewUser = data?.is_new_user ?? data?.isNewUser ?? false;
     const userId = data?.user_id ?? data?.userId ?? data?.data?.user_id ?? null;
     const applicationId = data?.application_id ?? data?.applicationId ?? data?.data?.application_id ?? null;
-    // Capture access token from NIAT response for subsequent authenticated calls
-    const accessToken = data?.access_token ?? data?.accessToken ?? data?.token ?? data?.data?.access_token ?? null;
-    const studentInfo = {
-      name: data?.name ?? data?.student_name ?? data?.data?.name ?? null,
-      email: data?.email ?? data?.data?.email ?? null,
-      phone: phoneNumber,
-    };
 
-    res.json({ isNewUser, userId, applicationId, studentInfo, accessToken });
+    // Fetch user profile via GraphQL to get name and determine if new user
+    let name: string | null = null;
+    let language: string | null = null;
+    if (userId) {
+      const profile = await getUserProfile(userId);
+      name = profile.name;
+      language = profile.language;
+    }
+
+    // A user is "new" if they have no name set (never completed profile)
+    const isNewUser = !name;
+
+    const studentInfo = { name, email: null as string | null, phone: phoneNumber, language };
+
+    res.json({ isNewUser, userId, applicationId, studentInfo });
   } catch (err: any) {
     console.error("Search user error:", err);
     res.status(400).json({ error: "Search Failed", message: err.message });

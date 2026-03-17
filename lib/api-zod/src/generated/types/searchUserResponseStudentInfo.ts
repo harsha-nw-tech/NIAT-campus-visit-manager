@@ -7,8 +7,9 @@
  */
 
 export type SearchUserResponseStudentInfo = {
-  name?: string;
-  email?: string;
+  name?: string | null;
+  email?: string | null;
   phone?: string;
+  language?: string | null;
   [key: string]: unknown;
 };
