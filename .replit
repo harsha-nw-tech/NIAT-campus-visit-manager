@@ -29,3 +29,4 @@ timeoutMs = 20000
 
 [userenv.shared]
 GAMMA_NIAT_API_BASE_URL = "https://ib-user-accounts-backend-gamma-apis.ccbp.in"
+APP_ENV = "gamma"
