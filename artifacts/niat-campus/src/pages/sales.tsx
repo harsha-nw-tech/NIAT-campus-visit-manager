@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, Link as LinkIcon, CheckCircle2, Copy, MessageCircle, MapPin, User, Phone, Briefcase } from "lucide-react";
+import { Search, UserPlus, Link as LinkIcon, CheckCircle2, Copy, MessageCircle, MapPin, User, Phone, Briefcase, Loader2 } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearchUser, useGetCompletion, useGenerateLink, useMarkVisited, SearchUserResponse, GetCompletionResponse } from "@workspace/api-client-react";
