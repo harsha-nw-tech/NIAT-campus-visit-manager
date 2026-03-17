@@ -1,0 +1,223 @@
+Enhance the existing **NIAT Campus Visit Manager** application by updating the **new user flow after phone number search**.
+
+This is an **incremental change**, do NOT rewrite the existing system.
+
+---
+
+# 🎯 WHERE TO MODIFY
+
+Modify the flow after:
+
+* Phone number search API is called
+* Response received with:
+
+  * isNewUser = true
+  * userId
+  * applicationId
+
+---
+
+# 🔥 NEW REQUIREMENT
+
+Before generating the direct visit link, the system must:
+
+👉 Update template fields dynamically
+👉 Then generate the direct link
+
+---
+
+# 🧠 STEP 1: ADD FIELD CONFIG SUPPORT
+
+Update or create:
+
+```js
+server/config/templateConfig.js
+```
+
+```js
+export const TEMPLATE_CONFIG = {
+  TEMPLATE_ID: process.env.TEMPLATE_ID,
+  SECTION_ID: process.env.SECTION_ID,
+  FIELDS: [
+    {
+      FIELD_ID: process.env.FIELD_ID,
+      FIELD_VALUE: "PCM / MPC (Maths)"
+    }
+  ]
+};
+```
+
+---
+
+# 🧠 STEP 2: CREATE TEMPLATE SERVICE
+
+Create:
+
+```js
+server/services/templateService.js
+```
+
+```js
+import { TEMPLATE_CONFIG } from "../config/templateConfig.js";
+import { getConfig } from "./niatClient.js";
+
+export async function updateTemplate(applicationId) {
+  const { baseUrl, clientKeyDetailsId } = getConfig();
+  const { TEMPLATE_ID, SECTION_ID, FIELDS } = TEMPLATE_CONFIG;
+
+  const url = `${baseUrl}/api/nw_application/application/template_response/update/v1/`;
+
+  for (const field of FIELDS) {
+    const payload = {
+      application_id: applicationId,
+      template_id: TEMPLATE_ID,
+      section_id: SECTION_ID,
+      field_id: field.FIELD_ID,
+      field_value: field.FIELD_VALUE
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.GAMMA_NIAT_API_KEY
+      },
+      body: JSON.stringify({
+        clientKeyDetailsId: clientKeyDetailsId,
+        data: `'${JSON.stringify(payload)}'`
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Template update failed: ${errorText}`);
+    }
+  }
+}
+```
+
+---
+
+# 🧠 STEP 3: UPDATE EXISTING FLOW (CRITICAL)
+
+Locate existing logic where:
+
+👉 Direct link is generated for new users
+
+Modify it to:
+
+```js
+1. Call updateTemplate(applicationId)
+
+2. If it fails:
+   → Return error response
+   → Do NOT generate link
+
+3. If it succeeds:
+   → Proceed with existing direct link generation logic
+```
+
+---
+
+# 🧠 STEP 4: BACKEND ENDPOINT CHANGE
+
+Update:
+
+```js
+POST /api/generate-link
+```
+
+New flow:
+
+```js
+- Receive userId, applicationId, phoneNumber
+
+- Call updateTemplate(applicationId)
+
+- If success:
+    generate redirectUrl
+
+- Save audit log
+
+- Return redirectUrl
+```
+
+---
+
+# 🧠 STEP 5: FRONTEND CHANGE
+
+Modify existing button behavior:
+
+---
+
+## WHEN isNewUser = true
+
+### Button:
+
+👉 "Generate Direct Visit Link"
+
+---
+
+## On Click:
+
+1. Disable button
+2. Show loading state
+
+---
+
+## Backend call:
+
+Call `/api/generate-link`
+
+---
+
+## Response Handling:
+
+### Success:
+
+* Show modal with redirect URL
+* Enable:
+
+  * Copy button
+  * WhatsApp share
+
+---
+
+### Failure:
+
+* Show error toast:
+  "Failed to initialize user. Please try again."
+
+---
+
+# ⚠️ IMPORTANT RULES
+
+* Do NOT generate link if template update fails
+* No partial success
+* Prevent multiple clicks
+* Always use env variables (no hardcoding)
+* Keep existing flow intact for existing users
+
+---
+
+# 🧪 EDGE CASES
+
+* Template API fails → block link
+* Network failure → allow retry
+* Multiple fields → all must succeed
+
+---
+
+# 🚀 EXPECTED RESULT
+
+For new users:
+
+1. Search phone
+2. Click "Generate Direct Visit Link"
+3. Template fields updated via API
+4. Then direct link generated
+5. User gets link
+
+---
+
+Do not break existing flows. Only extend the new user flow with this logic.

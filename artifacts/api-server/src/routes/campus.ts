@@ -136,21 +136,10 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Step 1: Update template fields before generating link
-    let templateUpdated = false;
-    try {
-      await updateTemplate(applicationId);
-      templateUpdated = true;
-      console.log(
-        `[generate-link] Template updated for application ${applicationId}`,
-      );
-    } catch (templateErr: any) {
-      // Template update requires user-level auth which is not available via API key.
-      // Log the failure but continue — link is still generated so sales staff can proceed.
-      console.warn(
-        `[generate-link] Template update failed (will still generate link): ${templateErr.message}`,
-      );
-    }
+    // Step 1: Update template fields — MUST succeed before link is generated
+    console.log(`[generate-link] Updating template for application ${applicationId}`);
+    await updateTemplate(applicationId);
+    console.log(`[generate-link] Template updated successfully for application ${applicationId}`);
 
     // Step 2: Generate the direct link
     const { redirectUrl } = await generateDirectLink(userId, applicationId);
@@ -165,7 +154,7 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
       phoneNumber,
     });
 
-    res.json({ redirectUrl, success: true, templateUpdated });
+    res.json({ redirectUrl, success: true, templateUpdated: true });
   } catch (err: any) {
     console.error("Generate link error:", err);
     res

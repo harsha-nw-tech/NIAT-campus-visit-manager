@@ -227,7 +227,7 @@ export async function updateTemplateResponse(
     `${baseUrl}/api/nw_application/application/template_response/update/v1/`,
     {
       method: "POST",
-      headers:  getHeaders(),
+      headers: await getBearerHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data,

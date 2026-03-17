@@ -14,10 +14,12 @@ const getTemplateConfig = () => ({
 export async function updateTemplate(applicationId: string): Promise<void> {
   const { TEMPLATE_ID, SECTION_ID, FIELDS } = getTemplateConfig();
 
+  if (!TEMPLATE_ID) throw new Error("TEMPLATE_ID is not configured");
+  if (!SECTION_ID) throw new Error("SECTION_ID is not configured");
+
   for (const field of FIELDS) {
     if (!field.FIELD_ID) {
-      console.warn("[updateTemplate] FIELD_ID not configured, skipping field update");
-      continue;
+      throw new Error("FIELD_ID is not configured — cannot update template");
     }
 
     const payload = {
