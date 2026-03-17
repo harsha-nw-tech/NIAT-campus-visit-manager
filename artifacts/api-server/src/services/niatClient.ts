@@ -1,7 +1,9 @@
 const getConfig = () => ({
   baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
   apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
-  clientKeyDetailsId: (process.env.COMMON_DATA_CLIENT_KEY_DETAILS_ID || "").trim(),
+  clientKeyDetailsId: (
+    process.env.COMMON_DATA_CLIENT_KEY_DETAILS_ID || ""
+  ).trim(),
 });
 
 const getHeaders = () => ({
@@ -20,11 +22,11 @@ export async function searchUserByPhone(phoneNumber: string) {
         phone_number: phoneNumber,
         country_code: "+91",
         application_details: {
-          application_name_enum: process.env.NIAT_APPLICATION_NAME ,
+          application_name_enum: process.env.NIAT_APPLICATION_NAME,
           identity: process.env.NIAT_IDENTITY,
         },
       }),
-    }
+    },
   );
   if (!res.ok) {
     const text = await res.text();
@@ -33,7 +35,9 @@ export async function searchUserByPhone(phoneNumber: string) {
   return res.json();
 }
 
-export async function getUserProfile(userId: string): Promise<{ name: string | null; language: string | null }> {
+export async function getUserProfile(
+  userId: string,
+): Promise<{ name: string | null; language: string | null }> {
   const { baseUrl } = getConfig();
 
   const query = `
@@ -64,7 +68,9 @@ export async function getUserProfile(userId: string): Promise<{ name: string | n
     console.log("[getUserProfile] raw:", JSON.stringify(data));
     const profile = data?.user_profile_details?.success_response;
     const rawLang = profile?.preferred_languages;
-    const language = Array.isArray(rawLang) ? (rawLang[0] || null) : (rawLang || null);
+    const language = Array.isArray(rawLang)
+      ? rawLang[0] || null
+      : rawLang || null;
     return { name: profile?.name || null, language };
   } catch (err) {
     console.warn("[getUserProfile] error:", err);
@@ -72,20 +78,28 @@ export async function getUserProfile(userId: string): Promise<{ name: string | n
   }
 }
 
-export async function getSectionsCompletion(userId: string, applicationId: string, accessToken?: string) {
+export async function getSectionsCompletion(
+  userId: string,
+  applicationId: string,
+  accessToken?: string,
+) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
 
-  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID ;
-  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID ;
+  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID;
+  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID;
   const applicationName = process.env.NIAT_APPLICATION_NAME;
 
   const dataPayload = JSON.stringify({
     user_id: userId,
     application_name_enum: applicationName,
-    section_entity_config_ids: [bookedSectionId, visitedSectionId].filter(Boolean),
+    section_entity_config_ids: [bookedSectionId, visitedSectionId].filter(
+      Boolean,
+    ),
   });
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
   } else {
@@ -101,7 +115,7 @@ export async function getSectionsCompletion(userId: string, applicationId: strin
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
       }),
-    }
+    },
   );
   if (!res.ok) {
     const text = await res.text();
@@ -114,7 +128,7 @@ export async function updateSectionCompletion(
   userId: string,
   applicationId: string,
   sectionEntityConfigId: string,
-  completionValue: number
+  completionValue: number,
 ) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
   const applicationName = process.env.NIAT_APPLICATION_NAME || "NIAT";
@@ -135,7 +149,7 @@ export async function updateSectionCompletion(
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
       }),
-    }
+    },
   );
   if (!res.ok) {
     const text = await res.text();
@@ -144,7 +158,10 @@ export async function updateSectionCompletion(
   return res.json();
 }
 
-export async function updateTemplateResponse(applicationId: string, data: string) {
+export async function updateTemplateResponse(
+  applicationId: string,
+  data: string,
+) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
   const res = await fetch(
     `${baseUrl}/api/nw_application/application/template_response/update/v1/`,
@@ -155,7 +172,7 @@ export async function updateTemplateResponse(applicationId: string, data: string
         clientKeyDetailsId,
         data,
       }),
-    }
+    },
   );
   if (!res.ok) {
     const text = await res.text();
@@ -164,7 +181,10 @@ export async function updateTemplateResponse(applicationId: string, data: string
   return res.json();
 }
 
-export async function generateDirectLink(userId: string, applicationId: string) {
+export async function generateDirectLink(
+  userId: string,
+  applicationId: string,
+) {
   const { baseUrl } = getConfig();
   const redirectUrl = `${baseUrl}/apply?user_id=${userId}&application_id=${applicationId}`;
   return { redirectUrl };
