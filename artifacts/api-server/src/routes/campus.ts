@@ -6,6 +6,7 @@ import {
   generateDirectLink,
 } from "../services/niatClient.js";
 import { updateTemplate } from "../services/templateService.js";
+import { getNiatConfig } from "../config/envConfig.js";
 import { db, auditLogsTable } from "@workspace/db";
 
 const router = Router();
@@ -30,8 +31,7 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
       const data = await getSectionsCompletion(userId, applicationId);
       console.log("Get completion raw response:", JSON.stringify(data));
 
-      const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID;
-      const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID;
+      const { bookedCampusVisitSectionId: bookedSectionId, visitedCampusSectionId: visitedSectionId } = getNiatConfig();
       const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
 
       const sections = Array.isArray(data?.data)
@@ -86,8 +86,7 @@ router.post(
         return;
       }
 
-      const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
-      const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
+      const { bookedCampusVisitSectionId: bookedSectionId, visitedCampusSectionId: visitedSectionId } = getNiatConfig();
       let niatUpdateSuccess = false;
       try {
         await updateSectionCompletion(

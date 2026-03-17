@@ -126,12 +126,8 @@ export async function getSectionsCompletion(
   userId: string,
   applicationId: string,
 ) {
-  const { baseUrl, clientKeyDetailsId } = getConfig();
-
-  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID;
-  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID;
+  const { baseUrl, clientKeyDetailsId, bookedCampusVisitSectionId: bookedSectionId, visitedCampusSectionId: visitedSectionId, applicationName } = getConfig();
   const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
-  const applicationName = process.env.NIAT_APPLICATION_NAME;
 
   const sectionIds = [
     personalSectionId,
@@ -250,46 +246,6 @@ export async function updateTemplateResponse(
   );
   if (!res.ok) {
     throw new Error(`Template API error (${res.status}): ${text}`);
-  }
-  return JSON.parse(text);
-}
-
-export async function updateUserTemplateField(
-  userId: string,
-  applicationId: string,
-) {
-  const { baseUrl } = getConfig();
-  const templateId = (process.env.TEMPLATE_ID || "").trim();
-  const sectionId = (process.env.SECTION_ID || "").trim();
-  const fieldId = (process.env.FIELD_ID || "").trim();
-
-  const payload = {
-    application_id: applicationId,
-    user_id: userId,
-    template_id: templateId,
-    section_id: sectionId,
-    field_id: fieldId,
-    field_value: "PCM / MPC (Maths)",
-  };
-
-  console.log("[updateUserTemplateField] payload:", JSON.stringify(payload));
-
-  const res = await fetch(
-    `${baseUrl}/api/nw_application/application/user/template_response/update/v1/`,
-    {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify(payload),
-    },
-  );
-
-  const text = await res.text();
-  console.log(`[updateUserTemplateField] status ${res.status}:`, text);
-
-  if (!res.ok) {
-    throw new Error(
-      `User template field update failed (${res.status}): ${text}`,
-    );
   }
   return JSON.parse(text);
 }
