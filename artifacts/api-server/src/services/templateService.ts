@@ -6,7 +6,7 @@ const getTemplateConfig = () => ({
   FIELDS: [
     {
       FIELD_ID: process.env.FIELD_ID || "",
-      FIELD_VALUE: "PCM / MPC (Maths)",
+      FIELD_VALUE: "Studying 12th/Intermediate 2nd Year",
     },
   ],
 });

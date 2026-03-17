@@ -797,6 +797,70 @@ export function useGetLogs<
 }
 
 /**
+ * @summary Get all users (admin credential management)
+ */
+export const getAllUsers = async (
+  options?: RequestInit,
+): Promise<{ users: Array<{ id: number; phoneNumber: string; role: string; plainPassword: string | null }> }> => {
+  return customFetch(`/api/admin/all-users`, { ...options, method: "GET" });
+};
+
+export const useGetAllUsers = <
+  TData = Awaited<ReturnType<typeof getAllUsers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = ["getAllUsers"];
+  const queryFn = () => getAllUsers(requestOptions);
+  const query = useQuery({ queryKey, queryFn, ...queryOptions }) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryKey;
+  return query;
+};
+
+/**
+ * @summary Change user credentials
+ */
+export const changeCredentials = async (
+  data: { id: number; phoneNumber: string; password: string },
+  options?: RequestInit,
+): Promise<{ success: boolean; message: string }> => {
+  return customFetch(`/api/admin/change-credentials`, {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(data),
+  });
+};
+
+export const useChangeCredentials = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeCredentials>>,
+    TError,
+    { data: { id: number; phoneNumber: string; password: string } },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof changeCredentials>>,
+  TError,
+  { data: { id: number; phoneNumber: string; password: string } },
+  TContext
+> => {
+  const { mutation: mutationOptions, request: requestOptions } = options ?? {};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeCredentials>>,
+    { data: { id: number; phoneNumber: string; password: string } }
+  > = (props) => changeCredentials(props.data, requestOptions);
+  return useMutation({ mutationKey: ["changeCredentials"], mutationFn, ...mutationOptions });
+};
+
+/**
  * @summary Update user template field
  */
 export const getUpdateUserFieldUrl = () => {

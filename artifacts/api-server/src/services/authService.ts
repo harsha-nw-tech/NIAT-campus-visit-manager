@@ -46,7 +46,21 @@ export async function createUser(phoneNumber: string, password: string, role: "a
   const hashedPw = hashPassword(password);
   const result = await db
     .insert(usersTable)
-    .values({ phoneNumber, password: hashedPw, role })
+    .values({ phoneNumber, password: hashedPw, plainPassword: password, role })
+    .returning();
+  return result[0];
+}
+
+export async function updateUserCredentials(
+  id: number,
+  phoneNumber: string,
+  password: string,
+) {
+  const hashedPw = hashPassword(password);
+  const result = await db
+    .update(usersTable)
+    .set({ phoneNumber, password: hashedPw, plainPassword: password })
+    .where(eq(usersTable.id, id))
     .returning();
   return result[0];
 }
@@ -56,5 +70,14 @@ export async function seedAdminIfNeeded() {
   if (!existing.length) {
     await createUser("admin", "admin123", "admin");
     console.log("Seeded default admin: phoneNumber=admin, password=admin123");
+  } else {
+    // Backfill plain_password for existing admin if missing
+    const admin = existing[0];
+    if (!admin.plainPassword) {
+      await db
+        .update(usersTable)
+        .set({ plainPassword: "admin123" })
+        .where(eq(usersTable.id, admin.id));
+    }
   }
 }
