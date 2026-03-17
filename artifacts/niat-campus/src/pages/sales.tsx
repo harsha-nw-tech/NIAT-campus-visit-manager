@@ -213,13 +213,13 @@ export default function SalesDashboard() {
                         data: { userId: searchResult.userId, applicationId: searchResult.applicationId },
                       });
                     }}
-                    isLoading={updateFieldMutation.isPending || linkMutation.isPending}
                     disabled={updateFieldMutation.isPending || linkMutation.isPending}
                   >
-                    {updateFieldMutation.isPending ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating field…</>
-                    ) : linkMutation.isPending ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating link…</>
+                    {updateFieldMutation.isPending || linkMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {updateFieldMutation.isPending ? "Registering visit…" : "Generating link…"}
+                      </>
                     ) : (
                       <><LinkIcon className="w-4 h-4 mr-2" />Mark Direct Visit</>
                     )}

@@ -133,10 +133,16 @@ router.post("/update-user-field", requireAuth, async (req: AuthRequest, res) => 
     }
 
     console.log(`[update-user-field] userId: ${userId} applicationId: ${applicationId}`);
-    await updateTemplate(userId, applicationId);
-    console.log(`[update-user-field] Success for userId: ${userId}`);
+    let templateUpdated = false;
+    try {
+      await updateTemplate(userId, applicationId);
+      templateUpdated = true;
+      console.log(`[update-user-field] Template updated for userId: ${userId}`);
+    } catch (templateErr: any) {
+      console.warn(`[update-user-field] Template update failed (non-blocking):`, templateErr.message);
+    }
 
-    res.json({ success: true });
+    res.json({ success: true, templateUpdated });
   } catch (err: any) {
     console.error("[update-user-field] error:", err);
     res.status(400).json({ error: "Failed to update user field", message: err.message });
