@@ -4,31 +4,33 @@ const getConfig = () => ({
   clientKeyDetailsId: (process.env.COMMON_DATA_CLIENT_KEY_DETAILS_ID || "").trim(),
 });
 
-const getHeaders = (extraHeaders: Record<string, string> = {}) => ({
+const getHeaders = () => ({
   "Content-Type": "application/json",
-  Authorization: `Bearer ${getConfig().apiKey}`,
-  ...extraHeaders,
+  "x-api-key": getConfig().apiKey,
 });
 
 export async function searchUserByPhone(phoneNumber: string) {
-  const { baseUrl, apiKey } = getConfig();
-  const url = `${baseUrl}/api/nw_application/user/phone_number/application/create/v1/`;
-  const headers = getHeaders();
-  console.log("[NIAT] POST", url);
-  console.log("[NIAT] Auth header:", `Token ${apiKey.slice(0, 6)}...${apiKey.slice(-4)} (length: ${apiKey.length})`);
-  console.log("[NIAT] Body:", JSON.stringify({ phone_number: phoneNumber }));
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ phone_number: phoneNumber }),
-  });
-  const text = await res.text();
-  console.log("[NIAT] Response status:", res.status);
-  console.log("[NIAT] Response body:", text);
+  const { baseUrl } = getConfig();
+  const res = await fetch(
+    `${baseUrl}/api/nw_application/user/phone_number/application/create/v1/`,
+    {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        phone_number: phoneNumber,
+        country_code: "91",
+        application_details: {
+          application_name_enum: process.env.NIAT_APPLICATION_NAME || "NIAT",
+          identity: process.env.NIAT_IDENTITY || "NIAT",
+        },
+      }),
+    }
+  );
   if (!res.ok) {
+    const text = await res.text();
     throw new Error(`NIAT API error (${res.status}): ${text}`);
   }
-  return JSON.parse(text);
+  return res.json();
 }
 
 export async function getSectionsCompletion(userId: string, applicationId: string) {
