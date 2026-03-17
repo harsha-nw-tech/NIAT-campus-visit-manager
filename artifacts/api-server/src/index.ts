@@ -1,4 +1,5 @@
-import app from "./app";
+import app from "./app.js";
+import { seedAdminIfNeeded } from "./services/authService.js";
 
 const rawPort = process.env["PORT"];
 
@@ -13,6 +14,10 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+seedAdminIfNeeded().catch((err) => {
+  console.warn("Admin seed failed (may already exist):", err.message);
+});
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

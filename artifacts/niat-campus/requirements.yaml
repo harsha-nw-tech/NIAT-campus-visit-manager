@@ -1,0 +1,21 @@
+packages:
+  "framer-motion": "For page transitions, list reveals, and micro-interactions"
+  "date-fns": "For elegant date formatting in audit logs"
+  "react-hook-form": "For robust form state management"
+  "@hookform/resolvers": "Zod integration for forms"
+  "zod": "For strict client-side form validation"
+  "clsx": "Class merging utility"
+  "tailwind-merge": "Tailwind class collision resolution"
+  "lucide-react": "Beautiful iconography"
+
+images:
+  - path: "artifacts/niat-campus/public/images/bg-pattern.png"
+    description: "A subtle, professional, high-end enterprise geometric pattern background in very light slate and slate-blue, minimalist, corporate, mostly white with soft clean lines"
+    aspect_ratio: "16:9"
+  - path: "artifacts/niat-campus/public/images/logo.png"
+    description: "Minimalist geometric corporate logo mark in deep indigo and slate, transparent background, abstract N shape"
+    aspect_ratio: "1:1"
+
+notes:
+  - The `@workspace/api-client-react` generated hooks are assumed to accept `options: { request?: RequestInit }` to pass the Authorization header.
+  - Using a custom AuthContext to manage JWT in localStorage and provide headers dynamically.

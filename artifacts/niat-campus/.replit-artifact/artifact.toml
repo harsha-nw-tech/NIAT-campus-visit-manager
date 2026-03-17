@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "NIAT Campus Visit Manager"
+version = "1.0.0"
+id = "artifacts/niat-campus"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 22206
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/niat-campus run dev"
+
+[services.env]
+PORT = "22206"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/niat-campus", "run", "build"]
+publicDir = "artifacts/niat-campus/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

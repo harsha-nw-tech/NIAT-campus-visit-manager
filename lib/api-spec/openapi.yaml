@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: NIAT Campus Visit Manager API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: search
+    description: User search
+  - name: campus
+    description: Campus visit operations
+  - name: admin
+    description: Admin operations
+  - name: logs
+    description: Audit logs
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +32,237 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /search-user:
+    post:
+      operationId: searchUser
+      tags: [search]
+      summary: Search user by phone number
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchUserRequest"
+      responses:
+        "200":
+          description: User found or created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchUserResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /get-completion:
+    post:
+      operationId: getCompletion
+      tags: [campus]
+      summary: Get campus visit completion status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetCompletionRequest"
+      responses:
+        "200":
+          description: Completion status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCompletionResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /mark-visited:
+    post:
+      operationId: markVisited
+      tags: [campus]
+      summary: Mark campus as visited (sales only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkVisitedRequest"
+      responses:
+        "200":
+          description: Campus marked as visited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /generate-link:
+    post:
+      operationId: generateLink
+      tags: [campus]
+      summary: Generate direct visit link
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateLinkRequest"
+      responses:
+        "200":
+          description: Link generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateLinkResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/create-sales:
+    post:
+      operationId: createSales
+      tags: [admin]
+      summary: Create a sales user (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSalesRequest"
+      responses:
+        "200":
+          description: Sales user created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/sales-users:
+    get:
+      operationId: getSalesUsers
+      tags: [admin]
+      summary: Get all sales users (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of sales users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesUsersResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /logs:
+    get:
+      operationId: getLogs
+      tags: [logs]
+      summary: Get audit logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: phoneNumber
+          in: query
+          schema:
+            type: string
+        - name: performedBy
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogsResponse"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +272,218 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    LoginRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        password:
+          type: string
+      required:
+        - phoneNumber
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserInfo"
+      required:
+        - token
+        - user
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: number
+        phoneNumber:
+          type: string
+        role:
+          type: string
+          enum: [admin, sales]
+      required:
+        - id
+        - phoneNumber
+        - role
+
+    SearchUserRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+      required:
+        - phoneNumber
+
+    SearchUserResponse:
+      type: object
+      properties:
+        isNewUser:
+          type: boolean
+        userId:
+          type: string
+        applicationId:
+          type: string
+        studentInfo:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+          additionalProperties: true
+      required:
+        - isNewUser
+
+    GetCompletionRequest:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        userId:
+          type: string
+      required:
+        - applicationId
+        - userId
+
+    GetCompletionResponse:
+      type: object
+      properties:
+        bookedCampusVisit:
+          type: number
+        visitedCampus:
+          type: number
+      required:
+        - bookedCampusVisit
+        - visitedCampus
+
+    MarkVisitedRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        applicationId:
+          type: string
+        phoneNumber:
+          type: string
+      required:
+        - userId
+        - applicationId
+        - phoneNumber
+
+    GenerateLinkRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        applicationId:
+          type: string
+        phoneNumber:
+          type: string
+      required:
+        - userId
+        - applicationId
+        - phoneNumber
+
+    GenerateLinkResponse:
+      type: object
+      properties:
+        redirectUrl:
+          type: string
+        success:
+          type: boolean
+      required:
+        - redirectUrl
+        - success
+
+    CreateSalesRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        password:
+          type: string
+      required:
+        - phoneNumber
+        - password
+
+    SalesUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserInfo"
+      required:
+        - users
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: number
+        actionType:
+          type: string
+          enum: [DIRECT_LINK_GENERATED, CAMPUS_MARKED]
+        performedBy:
+          type: string
+        performerPhone:
+          type: string
+        targetUserId:
+          type: string
+        applicationId:
+          type: string
+        phoneNumber:
+          type: string
+        timestamp:
+          type: string
+      required:
+        - id
+        - actionType
+        - performedBy
+        - performerPhone
+        - timestamp
+
+    LogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+      required:
+        - logs
+        - total
+        - page
+        - limit
