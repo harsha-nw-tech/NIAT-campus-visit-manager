@@ -219,7 +219,7 @@ export async function updateSectionCompletion(
 
 export async function updateTemplateResponse(
   applicationId: string,
-  data: string,
+  data: object,
 ) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
 

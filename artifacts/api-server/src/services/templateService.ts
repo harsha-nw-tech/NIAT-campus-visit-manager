@@ -35,11 +35,10 @@ export async function updateTemplate(userId: string, applicationId: string): Pro
       field_value: field.FIELD_VALUE,
     };
 
-    const dataString = `'${JSON.stringify(payload)}'`;
     console.log(
       `[updateTemplate] Updating field ${field.FIELD_ID} for user ${userId} application ${applicationId}`,
     );
-    await updateTemplateResponse(applicationId, dataString);
+    await updateTemplateResponse(applicationId, payload);
     console.log(
       `[updateTemplate] Field ${field.FIELD_ID} updated successfully`,
     );
