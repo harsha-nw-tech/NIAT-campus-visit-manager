@@ -1,5 +1,6 @@
 import app from "./app.js";
 import { seedAdminIfNeeded } from "./services/authService.js";
+import { logConfig } from "./config/envConfig.js";
 
 const rawPort = process.env["PORT"];
 
@@ -21,4 +22,5 @@ seedAdminIfNeeded().catch((err) => {
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
+  logConfig();
 });

@@ -1,10 +1,17 @@
-const getConfig = () => ({
-  baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
-  apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
-  clientKeyDetailsId: (
-    process.env.COMMON_DATA_CLIENT_KEY_DETAILS_ID || ""
-  ).trim(),
-});
+import { getNiatConfig } from "../config/envConfig.js";
+
+const getConfig = () => {
+  const cfg = getNiatConfig();
+  return {
+    baseUrl: cfg.apiBaseUrl,
+    apiKey: cfg.apiKey,
+    clientKeyDetailsId: cfg.clientKeyDetailsId,
+    applicationName: cfg.applicationName,
+    identity: cfg.identity,
+    countryCode: cfg.countryCode,
+    applicationUrl: cfg.applicationUrl,
+  };
+};
 
 const getHeaders = () => ({
   "Content-Type": "application/json",
@@ -291,8 +298,8 @@ export async function generateDirectLink(
   userId: string,
   applicationId: string,
 ) {
-  const { baseUrl } = getConfig();
-  const redirectUrl = `${baseUrl}/apply?user_id=${userId}&application_id=${applicationId}`;
+  const { applicationUrl } = getConfig();
+  const redirectUrl = `${applicationUrl}?user_id=${userId}&application_id=${applicationId}`;
   console.log("[generateDirectLink] url:", redirectUrl);
   return { redirectUrl };
 }

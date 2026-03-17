@@ -23,7 +23,6 @@ export default function SalesDashboard() {
   const [searchedPhone, setSearchedPhone] = useState("");
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState("");
-  const [fieldUpdated, setFieldUpdated] = useState(false);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<{phoneNumber: string}>({
     resolver: zodResolver(searchSchema)
@@ -34,7 +33,6 @@ export default function SalesDashboard() {
   useEffect(() => {
     setSearchResult(null);
     setCompletionData(null);
-    setFieldUpdated(false);
   }, [phoneValue]);
 
   const searchMutation = useSearchUser({
@@ -65,21 +63,6 @@ export default function SalesDashboard() {
     }
   });
 
-  const updateFieldMutation = useUpdateUserField({
-    request: { headers: getHeaders() },
-    mutation: {
-      onSuccess: () => {
-        setFieldUpdated(true);
-        toast({ title: "User field updated", description: "You can now generate the visit link." });
-      },
-      onError: (err: any) => toast({
-        title: "Field update failed",
-        description: err.message || "Please try again.",
-        variant: "destructive"
-      })
-    }
-  });
-
   const linkMutation = useGenerateLink({
     request: { headers: getHeaders() },
     mutation: {
@@ -87,9 +70,30 @@ export default function SalesDashboard() {
         setGeneratedUrl(data.redirectUrl ?? "");
         setIsLinkModalOpen(true);
       },
-      onError: () => toast({
+      onError: (err: any) => toast({
         title: "Failed to generate link",
-        description: "Please try again.",
+        description: err.message || "Please try again.",
+        variant: "destructive"
+      })
+    }
+  });
+
+  const updateFieldMutation = useUpdateUserField({
+    request: { headers: getHeaders() },
+    mutation: {
+      onSuccess: (_data, variables) => {
+        // Immediately chain into generate link
+        linkMutation.mutate({
+          data: {
+            userId: variables.data.userId,
+            applicationId: variables.data.applicationId,
+            phoneNumber: searchedPhone,
+          }
+        });
+      },
+      onError: (err: any) => toast({
+        title: "Field update failed",
+        description: err.message || "Please try again.",
         variant: "destructive"
       })
     }
@@ -111,17 +115,6 @@ export default function SalesDashboard() {
 
   const onSearch = (data: {phoneNumber: string}) => {
     searchMutation.mutate({ data });
-  };
-
-  const handleGenerateLink = () => {
-    if (!searchResult || !searchResult.userId || !searchResult.applicationId) return;
-    linkMutation.mutate({
-      data: {
-        userId: searchResult.userId,
-        applicationId: searchResult.applicationId,
-        phoneNumber: searchedPhone
-      }
-    });
   };
 
   const handleMarkVisited = () => {
@@ -180,48 +173,29 @@ export default function SalesDashboard() {
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-2">New Prospect Found</h3>
                   <p className="text-slate-600 mb-8">
-                    This phone number is not registered. First update the user's field, then generate the visit link.
+                    This phone number is not yet registered. Click below to register the visit and get the direct link.
                   </p>
 
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    {/* Step 1: Update user field */}
-                    <Button
-                      size="lg"
-                      variant={fieldUpdated ? "outline" : "default"}
-                      onClick={() => {
-                        if (!searchResult.userId || !searchResult.applicationId) return;
-                        updateFieldMutation.mutate({
-                          data: { userId: searchResult.userId, applicationId: searchResult.applicationId }
-                        });
-                      }}
-                      isLoading={updateFieldMutation.isPending}
-                      disabled={updateFieldMutation.isPending || fieldUpdated}
-                      className="w-full sm:w-auto"
-                    >
-                      {updateFieldMutation.isPending ? (
-                        <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Updating Field…</>
-                      ) : fieldUpdated ? (
-                        <><CheckCircle2 className="w-5 h-5 mr-2 text-green-500" />Field Updated</>
-                      ) : (
-                        <>Update User Field</>
-                      )}
-                    </Button>
-
-                    {/* Step 2: Generate link — only enabled after field update */}
-                    <Button
-                      size="lg"
-                      onClick={handleGenerateLink}
-                      isLoading={linkMutation.isPending}
-                      disabled={!fieldUpdated || linkMutation.isPending}
-                      className="w-full sm:w-auto"
-                    >
-                      {linkMutation.isPending ? (
-                        <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Generating…</>
-                      ) : (
-                        <><LinkIcon className="w-5 h-5 mr-2" />Generate Direct Visit Link</>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      if (!searchResult.userId || !searchResult.applicationId) return;
+                      updateFieldMutation.mutate({
+                        data: { userId: searchResult.userId, applicationId: searchResult.applicationId }
+                      });
+                    }}
+                    isLoading={updateFieldMutation.isPending || linkMutation.isPending}
+                    disabled={updateFieldMutation.isPending || linkMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {updateFieldMutation.isPending ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Updating field…</>
+                    ) : linkMutation.isPending ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Generating link…</>
+                    ) : (
+                      <><LinkIcon className="w-5 h-5 mr-2" />Mark Direct Visit</>
+                    )}
+                  </Button>
                 </Card>
               ) : (
                 <div className="space-y-6">

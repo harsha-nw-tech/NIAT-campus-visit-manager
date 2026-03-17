@@ -1,0 +1,155 @@
+/**
+ * Environment Configuration System
+ * Supports: local, gamma, prod environments
+ * Set APP_ENV variable to switch between them
+ */
+
+export type Environment = "local" | "gamma" | "prod";
+
+export interface NiatConfig {
+  apiKey: string;
+  apiBaseUrl: string;
+  retakeEntityId: string;
+  testEntityId: string;
+  paymentEntityId: string;
+  slotEntityId: string;
+  retakeSlotEntityId: string;
+  callbackUrl: string;
+  ssoLoginUrl: string;
+  ssoLogoutUrl: string;
+  ssoApiBaseUrl: string;
+  clientKeyDetailsId: number;
+  accessToken?: string;
+  // Application constants (shared across environments)
+  applicationName: string;
+  countryCode: string;
+  identity: string;
+  addressType: string;
+  crmClientId: string;
+  crmClientSecret: string;
+  crmAuthUrl: string;
+  crmActivityApiUrl: string;
+  crmAccessToken?: string;
+  // Dynamic CRM Fields
+  twelfthCompletionYear: string;
+}
+
+export interface AppConfig {
+  environment: Environment;
+  niat: NiatConfig;
+}
+
+/**
+ * Get the current environment from APP_ENV variable
+ * Defaults to "local" if not set or invalid
+ */
+export function getEnvironment(): Environment {
+  const env = process.env.APP_ENV?.toLowerCase() as Environment;
+  if (env === "local" || env === "gamma" || env === "prod") {
+    return env;
+  }
+  return "local";
+}
+
+/**
+ * Get environment-specific configuration
+ * Reads from LOCAL_, GAMMA_, or PROD_ prefixed environment variables
+ */
+function getEnvConfig(env: Environment): NiatConfig {
+  const prefix = env.toUpperCase();
+
+  return {
+    apiKey: process.env[`${prefix}_NIAT_API_KEY`] || "",
+    apiBaseUrl: process.env[`${prefix}_NIAT_API_BASE_URL`] || "",
+    retakeEntityId: process.env[`${prefix}_NIAT_RETAKE_ENTITY_ID`] || "",
+    testEntityId: process.env[`${prefix}_NIAT_TEST_ENTITY_ID`] || "",
+    paymentEntityId: process.env[`${prefix}_NIAT_PAYMENT_ENTITY_ID`] || "",
+    slotEntityId: process.env[`${prefix}_NIAT_SLOT_ENTITY_ID`] || "",
+    retakeSlotEntityId: process.env[`${prefix}_NIAT_RETAKE_SLOT_ENTITY_ID`] || "",
+    callbackUrl: process.env[`${prefix}_CALL_BACK_URL`] || "",
+    ssoLoginUrl: process.env[`${prefix}_SSO_LOGIN_URL`] || "",
+    ssoLogoutUrl: process.env[`${prefix}_SSO_LOGOUT_URL`] || "",
+    ssoApiBaseUrl: process.env[`${prefix}_SSO_API_BASE_URL`] || "",
+    clientKeyDetailsId: 1,
+    accessToken: process.env[`${prefix}_NIAT_ACCESS_TOKEN`],
+    // Application constants (from env, with sensible defaults)
+    applicationName: process.env.NIAT_APPLICATION_NAME || "NIAT_2026",
+    countryCode: process.env.NIAT_APPLICATION_COUNTRY_CODE || "+91",
+    identity: process.env.NIAT_APPLICATION_IDENTITY || "STUDENT",
+    addressType: process.env.NIAT_APPLICATION_ADDRESS_TYPE || "CURRENT",
+    // CRM Configuration
+    crmClientId: process.env[`${prefix}_CRM_CLIENT_ID`] || process.env.CRM_CLIENT_ID || "",
+    crmClientSecret: process.env[`${prefix}_CRM_CLIENT_SECRET`] || process.env.CRM_CLIENT_SECRET || "",
+    crmAuthUrl: process.env[`${prefix}_CRM_AUTH_URL`] || process.env.CRM_AUTH_URL || "",
+    crmActivityApiUrl: process.env[`${prefix}_CRM_ACTIVITY_API_URL`] || process.env.CRM_ACTIVITY_API_URL || "",
+    crmAccessToken: process.env[`${prefix}_CRM_ACCESS_TOKEN`] || process.env.CRM_ACCESS_TOKEN,
+    twelfthCompletionYear: process.env.TWELFTH_COMPLETION_YEAR || "2026",
+  };
+}
+
+/**
+ * Get the full application configuration for the current environment
+ */
+export function getConfig(): AppConfig {
+  const environment = getEnvironment();
+  const niatConfig = getEnvConfig(environment);
+
+  return {
+    environment,
+    niat: niatConfig,
+  };
+}
+
+/**
+ * Get NIAT-specific configuration
+ */
+export function getNiatConfig(): NiatConfig {
+  return getConfig().niat;
+}
+
+/**
+ * Validate that all required NIAT config values are present
+ */
+export function validateNiatConfig(): { valid: boolean; missing: string[] } {
+  const config = getNiatConfig();
+  const missing: string[] = [];
+
+  if (!config.apiKey) missing.push("apiKey");
+  if (!config.apiBaseUrl) missing.push("apiBaseUrl");
+  if (!config.retakeEntityId) missing.push("retakeEntityId");
+  if (!config.testEntityId) missing.push("testEntityId");
+  if (!config.paymentEntityId) missing.push("paymentEntityId");
+  if (!config.callbackUrl) missing.push("callbackUrl");
+
+  return {
+    valid: missing.length === 0,
+    missing,
+  };
+}
+
+/**
+ * Check if retake is disabled (entity_id equals "100")
+ */
+export function isRetakeDisabled(): boolean {
+  const config = getNiatConfig();
+  return config.retakeEntityId === "100";
+}
+
+/**
+ * Log current configuration (without sensitive data)
+ */
+export function logConfig(): void {
+  const config = getConfig();
+  console.log(`🔧 Environment: ${config.environment}`);
+  console.log(`🔧 NIAT API Base URL: ${config.niat.apiBaseUrl}`);
+  console.log(`🔧 Callback URL: ${config.niat.callbackUrl}`);
+  console.log(`🔧 SSO Login URL: ${config.niat.ssoLoginUrl}`);
+  console.log(`🔧 SSO Logout URL: ${config.niat.ssoLogoutUrl}`);
+  console.log(`🔧 SSO API Base URL: ${config.niat.ssoApiBaseUrl}`);
+  console.log(`🔧 Retake Entity ID: ${config.niat.retakeEntityId}`);
+  console.log(`🔧 Test Entity ID: ${config.niat.testEntityId}`);
+  console.log(`🔧 Payment Entity ID: ${config.niat.paymentEntityId}`);
+  console.log(`🔧 Slot Entity ID: ${config.niat.slotEntityId}`);
+  console.log(`🔧 Retake Slot Entity ID: ${config.niat.retakeSlotEntityId}`);
+  console.log(`🔧 Retake Disabled: ${isRetakeDisabled()}`);
+}

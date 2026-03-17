@@ -1,15 +1,19 @@
 import { updateTemplateResponse } from "./niatClient.js";
+import { getNiatConfig } from "../config/envConfig.js";
 
-const getTemplateConfig = () => ({
-  TEMPLATE_ID: process.env.TEMPLATE_ID || "",
-  SECTION_ID: process.env.SECTION_ID || "",
-  FIELDS: [
-    {
-      FIELD_ID: process.env.FIELD_ID || "",
-      FIELD_VALUE: "Studying 12th/Intermediate 2nd Year",
-    },
-  ],
-});
+const getTemplateConfig = () => {
+  const cfg = getNiatConfig();
+  return {
+    TEMPLATE_ID: cfg.templateId,
+    SECTION_ID: cfg.sectionId,
+    FIELDS: [
+      {
+        FIELD_ID: cfg.fieldId,
+        FIELD_VALUE: "Studying 12th/Intermediate 2nd Year",
+      },
+    ],
+  };
+};
 
 export async function updateTemplate(userId: string, applicationId: string): Promise<void> {
   const { TEMPLATE_ID, SECTION_ID, FIELDS } = getTemplateConfig();
