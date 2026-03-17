@@ -117,7 +117,6 @@ export async function getUserProfile(userId: string): Promise<{
 export async function getSectionsCompletion(
   userId: string,
   applicationId: string,
-  accessToken?: string,
 ) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
 
@@ -126,35 +125,21 @@ export async function getSectionsCompletion(
   const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
   const applicationName = process.env.NIAT_APPLICATION_NAME;
 
+  const sectionIds = [personalSectionId, bookedSectionId, visitedSectionId].filter(Boolean);
+
   const dataPayload = JSON.stringify({
     user_id: userId,
     application_name_enum: applicationName,
-    section_entity_config_ids: [personalSectionId,bookedSectionId, visitedSectionId].filter(
-      Boolean,
-    ),
+    section_entity_config_ids: sectionIds,
   });
 
-  console.log(
-    "[getSectionsCompletion] userId:",
-    userId,
-    "sections:",
-    [bookedSectionId, visitedSectionId , personalSectionId],
-  );
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (accessToken) {
-    headers["Authorization"] = `Bearer ${accessToken}`;
-  } else {
-    headers["x-api-key"] = getConfig().apiKey;
-  }
+  console.log("[getSectionsCompletion] userId:", userId, "sections:", sectionIds);
 
   const res = await fetch(
     `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
     {
       method: "POST",
-      headers,
+      headers: getHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data: `'${dataPayload}'`,

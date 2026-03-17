@@ -8,7 +8,7 @@ const router = Router();
 
 router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
   try {
-    const { applicationId, userId, accessToken } = req.body;
+    const { applicationId, userId } = req.body;
     if (!applicationId || !userId) {
       res.status(400).json({ error: "Bad Request", message: "applicationId and userId are required" });
       return;
@@ -19,11 +19,12 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
     let completionAvailable = false;
 
     try {
-      const data = await getSectionsCompletion(userId, applicationId, accessToken);
+      const data = await getSectionsCompletion(userId, applicationId);
       console.log("Get completion raw response:", JSON.stringify(data));
 
       const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
       const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
+      const persona
 
       const sections = Array.isArray(data?.data) ? data.data :
         (data?.data ?? data?.sections ?? data ?? {});
