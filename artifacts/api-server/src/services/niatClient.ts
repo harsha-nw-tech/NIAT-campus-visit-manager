@@ -6,7 +6,7 @@ const getConfig = () => ({
 
 const getHeaders = () => ({
   "Content-Type": "application/json",
-  Authorization: `Bearer ${getConfig().apiKey}`,
+  Authorization: `Token ${getConfig().apiKey}`,
 });
 
 export async function searchUserByPhone(phoneNumber: string) {
