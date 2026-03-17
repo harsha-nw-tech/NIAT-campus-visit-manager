@@ -31,8 +31,12 @@ export async function updateTemplate(applicationId: string): Promise<void> {
     };
 
     const dataString = `'${JSON.stringify(payload)}'`;
-    console.log(`[updateTemplate] Updating field ${field.FIELD_ID} for application ${applicationId}`);
+    console.log(
+      `[updateTemplate] Updating field ${field.FIELD_ID} for application ${applicationId}`,
+    );
     await updateTemplateResponse(applicationId, dataString);
-    console.log(`[updateTemplate] Field ${field.FIELD_ID} updated successfully`);
+    console.log(
+      `[updateTemplate] Field ${field.FIELD_ID} updated successfully`,
+    );
   }
 }

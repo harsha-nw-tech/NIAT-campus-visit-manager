@@ -8,7 +8,9 @@ router.post("/search-user", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { phoneNumber } = req.body;
     if (!phoneNumber) {
-      res.status(400).json({ error: "Bad Request", message: "phoneNumber is required" });
+      res
+        .status(400)
+        .json({ error: "Bad Request", message: "phoneNumber is required" });
       return;
     }
 
@@ -40,8 +42,7 @@ router.post("/search-user", requireAuth, async (req: AuthRequest, res) => {
 
     const studentInfo = {
       name,
-      email: null as string | null,
-      phone: mobile || phoneNumber,  // prefer profile phone (normalized by NIAT)
+      phone: mobile || phoneNumber, // prefer profile phone (normalized by NIAT)
       language,
     };
 

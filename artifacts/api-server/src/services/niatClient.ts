@@ -1,3 +1,4 @@
+
 const getConfig = () => ({
   baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
   apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
@@ -84,6 +85,7 @@ export async function getUserProfile(userId: string): Promise<{
     const json = await res.json();
     console.log("[getUserProfile] raw:", JSON.stringify(json));
 
+    // Response shape: { data: { user_profile_details: { success_response: { ... } } } }
     const profile = json?.data?.user_profile_details?.success_response;
     console.log("[getUserProfile] parsed profile:", JSON.stringify(profile));
 
@@ -98,10 +100,14 @@ export async function getUserProfile(userId: string): Promise<{
     const canonicalUserId = profile?.user_id || null;
 
     console.log(
-      "[getUserProfile] result → userId:", canonicalUserId,
-      "name:", name,
-      "mobile:", mobile,
-      "language:", language,
+      "[getUserProfile] result → userId:",
+      canonicalUserId,
+      "name:",
+      name,
+      "mobile:",
+      mobile,
+      "language:",
+      language,
     );
     return { userId: canonicalUserId, name, mobile, language };
   } catch (err) {
@@ -121,7 +127,11 @@ export async function getSectionsCompletion(
   const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
   const applicationName = process.env.NIAT_APPLICATION_NAME;
 
-  const sectionIds = [personalSectionId, bookedSectionId, visitedSectionId].filter(Boolean);
+  const sectionIds = [
+    personalSectionId,
+    bookedSectionId,
+    visitedSectionId,
+  ].filter(Boolean);
 
   const dataPayload = JSON.stringify({
     user_id: userId,
@@ -129,7 +139,12 @@ export async function getSectionsCompletion(
     section_entity_config_ids: sectionIds,
   });
 
-  console.log("[getSectionsCompletion] userId:", userId, "sections:", sectionIds);
+  console.log(
+    "[getSectionsCompletion] userId:",
+    userId,
+    "sections:",
+    sectionIds,
+  );
 
   const res = await fetch(
     `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
@@ -169,8 +184,10 @@ export async function updateSectionCompletion(
   });
 
   console.log(
-    "[updateSectionCompletion] sectionId:", sectionEntityConfigId,
-    "value:", completionValue,
+    "[updateSectionCompletion] sectionId:",
+    sectionEntityConfigId,
+    "value:",
+    completionValue,
   );
 
   const res = await fetch(
@@ -194,20 +211,45 @@ export async function updateSectionCompletion(
   return JSON.parse(text);
 }
 
-export async function updateUserTemplateField(
-  userId: string,
+export async function updateTemplateResponse(
   applicationId: string,
+  data: string,
 ) {
+  const { baseUrl, clientKeyDetailsId } = getConfig();
+
+  console.log(
+    "[updateTemplateResponse] applicationId:",
+    applicationId,
+    "data:",
+    data,
+  );
+
+  const res = await fetch(
+    `${baseUrl}/api/nw_application/application/user/template_response/update/v1/`,
+    {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        clientKeyDetailsId,
+        data,
+      }),
+    },
+  );
+
+  const text = await res.text();
+  console.log(`[updateTemplateResponse] status ${res.status}:`, text);
+
+  if (!res.ok) {
+    throw new Error(`Template API error (${res.status}): ${text}`);
+  }
+  return JSON.parse(text);
+}
+
+export async function updateUserTemplateField(userId: string, applicationId: string) {
   const { baseUrl } = getConfig();
-
-  const templateId = process.env.TEMPLATE_ID || "";
-  const sectionId = process.env.SECTION_ID || "";
-  const fieldId = process.env.FIELD_ID || "";
-  const fieldValue = "PCM / MPC (Maths)";
-
-  if (!templateId) throw new Error("TEMPLATE_ID is not configured");
-  if (!sectionId) throw new Error("SECTION_ID is not configured");
-  if (!fieldId) throw new Error("FIELD_ID is not configured");
+  const templateId = (process.env.TEMPLATE_ID || "").trim();
+  const sectionId = (process.env.SECTION_ID || "").trim();
+  const fieldId = (process.env.FIELD_ID || "").trim();
 
   const payload = {
     application_id: applicationId,
@@ -215,7 +257,7 @@ export async function updateUserTemplateField(
     template_id: templateId,
     section_id: sectionId,
     field_id: fieldId,
-    field_value: fieldValue,
+    field_value: "PCM / MPC (Maths)",
   };
 
   console.log("[updateUserTemplateField] payload:", JSON.stringify(payload));
