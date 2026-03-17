@@ -8,27 +8,44 @@ const router = Router();
 
 router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
   try {
-    const { applicationId, userId } = req.body;
+    const { applicationId, userId, accessToken } = req.body;
     if (!applicationId || !userId) {
       res.status(400).json({ error: "Bad Request", message: "applicationId and userId are required" });
       return;
     }
 
-    const data = await getSectionsCompletion(userId, applicationId);
+    let bookedCampusVisit: number | null = null;
+    let visitedCampus: number | null = null;
+    let completionAvailable = false;
 
-    const sections = data?.data ?? data?.sections ?? data ?? {};
-    const bookedCampusVisit =
-      sections?.booked_campus_visit?.completion ??
-      sections?.bookedCampusVisit ??
-      sections?.booked_campus_visit ??
-      0;
-    const visitedCampus =
-      sections?.visited_campus?.completion ??
-      sections?.visitedCampus ??
-      sections?.visited_campus ??
-      0;
+    try {
+      const data = await getSectionsCompletion(userId, applicationId, accessToken);
+      console.log("Get completion raw response:", JSON.stringify(data));
 
-    res.json({ bookedCampusVisit, visitedCampus });
+      const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
+      const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
+
+      const sections = Array.isArray(data?.data) ? data.data :
+        (data?.data ?? data?.sections ?? data ?? {});
+
+      const findCompletion = (id: string) => {
+        if (Array.isArray(sections)) {
+          const entry = sections.find((s: any) =>
+            s.section_entity_config_id === id || s.id === id
+          );
+          return entry?.completion ?? entry?.completion_value ?? 0;
+        }
+        return sections?.[id]?.completion ?? sections?.[id] ?? 0;
+      };
+
+      bookedCampusVisit = findCompletion(bookedSectionId);
+      visitedCampus = findCompletion(visitedSectionId);
+      completionAvailable = true;
+    } catch (completionErr: any) {
+      console.warn("Could not fetch completion data (requires user auth):", completionErr.message);
+    }
+
+    res.json({ bookedCampusVisit, visitedCampus, completionAvailable });
   } catch (err: any) {
     console.error("Get completion error:", err);
     res.status(400).json({ error: "Failed", message: err.message });
@@ -47,8 +64,16 @@ router.post(
         return;
       }
 
-      await updateSectionCompletion(userId, applicationId, "booked_campus_visit", 100);
-      await updateSectionCompletion(userId, applicationId, "visited_campus", 100);
+      const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
+      const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
+      let niatUpdateSuccess = false;
+      try {
+        await updateSectionCompletion(userId, applicationId, bookedSectionId, 100);
+        await updateSectionCompletion(userId, applicationId, visitedSectionId, 100);
+        niatUpdateSuccess = true;
+      } catch (niatErr: any) {
+        console.warn("Could not update NIAT completion (requires user auth):", niatErr.message);
+      }
 
       await db.insert(auditLogsTable).values({
         actionType: "CAMPUS_MARKED",
@@ -59,7 +84,11 @@ router.post(
         phoneNumber,
       });
 
-      res.json({ success: true, message: "Campus visit marked successfully" });
+      res.json({
+        success: true,
+        message: "Campus visit marked successfully",
+        niatUpdated: niatUpdateSuccess,
+      });
     } catch (err: any) {
       console.error("Mark visited error:", err);
       res.status(400).json({ error: "Failed", message: err.message });

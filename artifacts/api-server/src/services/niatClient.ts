@@ -33,14 +33,35 @@ export async function searchUserByPhone(phoneNumber: string) {
   return res.json();
 }
 
-export async function getSectionsCompletion(userId: string, applicationId: string) {
-  const { baseUrl } = getConfig();
+export async function getSectionsCompletion(userId: string, applicationId: string, accessToken?: string) {
+  const { baseUrl, clientKeyDetailsId } = getConfig();
+
+  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
+  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
+  const applicationName = process.env.NIAT_APPLICATION_NAME || "NIAT";
+
+  const dataPayload = JSON.stringify({
+    user_id: userId,
+    application_name_enum: applicationName,
+    section_entity_config_ids: [bookedSectionId, visitedSectionId].filter(Boolean),
+  });
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  } else {
+    headers["x-api-key"] = getConfig().apiKey;
+  }
+
   const res = await fetch(
     `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
     {
       method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({ user_id: userId, application_id: applicationId }),
+      headers,
+      body: JSON.stringify({
+        clientKeyDetailsId,
+        data: `'${dataPayload}'`,
+      }),
     }
   );
   if (!res.ok) {
@@ -53,20 +74,27 @@ export async function getSectionsCompletion(userId: string, applicationId: strin
 export async function updateSectionCompletion(
   userId: string,
   applicationId: string,
-  sectionKey: string,
+  sectionEntityConfigId: string,
   completionValue: number
 ) {
-  const { baseUrl } = getConfig();
+  const { baseUrl, clientKeyDetailsId } = getConfig();
+  const applicationName = process.env.NIAT_APPLICATION_NAME || "NIAT";
+
+  const dataPayload = JSON.stringify({
+    user_id: userId,
+    application_name_enum: applicationName,
+    section_entity_config_id: sectionEntityConfigId,
+    completion_value: completionValue,
+  });
+
   const res = await fetch(
     `${baseUrl}/api/nw_application/application/user_section_completion/create_or_update/v1/`,
     {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({
-        user_id: userId,
-        application_id: applicationId,
-        section_key: sectionKey,
-        completion_value: completionValue,
+        clientKeyDetailsId,
+        data: `'${dataPayload}'`,
       }),
     }
   );

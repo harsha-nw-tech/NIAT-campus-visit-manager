@@ -199,33 +199,49 @@ export default function SalesDashboard() {
                         </div>
                       ) : completionData ? (
                         <div className="space-y-6">
-                          <div>
-                            <div className="flex justify-between text-sm mb-2 font-medium">
-                              <span className="text-slate-600">Application Progress</span>
-                              <span className="text-primary">{completionData.bookedCampusVisit}%</span>
+                          {completionData.completionAvailable && completionData.bookedCampusVisit != null && (
+                            <div>
+                              <div className="flex justify-between text-sm mb-2 font-medium">
+                                <span className="text-slate-600">Application Progress</span>
+                                <span className="text-primary">{completionData.bookedCampusVisit}%</span>
+                              </div>
+                              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-400 rounded-full transition-all duration-1000" style={{ width: `${completionData.bookedCampusVisit}%` }} />
+                              </div>
                             </div>
-                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-400 rounded-full transition-all duration-1000" style={{ width: `${completionData.bookedCampusVisit}%` }} />
+                          )}
+
+                          {completionData.completionAvailable && completionData.visitedCampus != null && (
+                            <div>
+                              <div className="flex justify-between text-sm mb-2 font-medium">
+                                <span className="text-slate-600">Campus Visited</span>
+                                <span className={completionData.visitedCampus === 100 ? "text-emerald-600" : "text-amber-600"}>
+                                  {completionData.visitedCampus}%
+                                </span>
+                              </div>
+                              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className={cn("h-full rounded-full transition-all duration-1000", completionData.visitedCampus === 100 ? "bg-emerald-500" : "bg-amber-400")} 
+                                  style={{ width: `${completionData.visitedCampus}%` }} 
+                                />
+                              </div>
                             </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-2 font-medium">
-                              <span className="text-slate-600">Campus Visited</span>
-                              <span className={completionData.visitedCampus === 100 ? "text-emerald-600" : "text-amber-600"}>
-                                {completionData.visitedCampus}%
-                              </span>
+                          )}
+
+                          {(!completionData.completionAvailable) && (
+                            <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-lg flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                              <span>Completion data requires user-level access. Use the action below to record the campus visit.</span>
                             </div>
-                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                              <div 
-                                className={cn("h-full rounded-full transition-all duration-1000", completionData.visitedCampus === 100 ? "bg-emerald-500" : "bg-amber-400")} 
-                                style={{ width: `${completionData.visitedCampus}%` }} 
-                              />
-                            </div>
-                          </div>
+                          )}
 
                           <div className="pt-4 border-t border-slate-100">
-                            {completionData.visitedCampus >= 100 ? (
+                            {markVisitedMutation.isSuccess ? (
+                              <div className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 p-4 rounded-xl justify-center">
+                                <CheckCircle2 className="w-5 h-5" />
+                                Campus Visit Recorded
+                              </div>
+                            ) : completionData.completionAvailable && completionData.visitedCampus != null && completionData.visitedCampus >= 100 ? (
                               <div className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 p-4 rounded-xl justify-center">
                                 <CheckCircle2 className="w-5 h-5" />
                                 Campus Visit Completed
