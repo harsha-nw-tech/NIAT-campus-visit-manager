@@ -175,21 +175,28 @@ export async function updateSectionCompletion(
   sectionEntityConfigId: string,
   completionValue: number,
 ) {
-  const { baseUrl, clientKeyDetailsId } = getConfig();
-  const applicationName = process.env.NIAT_APPLICATION_NAME;
+  const { baseUrl, applicationName } = getConfig();
 
-  const dataPayload = JSON.stringify({
+  const body = {
     user_id: userId,
     application_name_enum: applicationName,
-    section_entity_config_id: sectionEntityConfigId,
-    completion_value: completionValue,
-  });
+    section_details: [
+      {
+        section_entity_config_id: sectionEntityConfigId,
+        completion_value: completionValue,
+      },
+    ],
+  };
 
   console.log(
     "[updateSectionCompletion] sectionId:",
     sectionEntityConfigId,
     "value:",
     completionValue,
+    "userId:",
+    userId,
+    "body:",
+    JSON.stringify(body),
   );
 
   const res = await fetch(
@@ -197,10 +204,7 @@ export async function updateSectionCompletion(
     {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({
-        clientKeyDetailsId,
-        data: `'${dataPayload}'`,
-      }),
+      body: JSON.stringify(body),
     },
   );
 
