@@ -149,7 +149,7 @@ export async function getSectionsCompletion(
     `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
     {
       method: "POST",
-      headers: await getBearerHeaders(),
+      headers:  getHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
@@ -173,7 +173,7 @@ export async function updateSectionCompletion(
   completionValue: number,
 ) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
-  const applicationName = process.env.NIAT_APPLICATION_NAME || "NIAT";
+  const applicationName = process.env.NIAT_APPLICATION_NAME ;
 
   const dataPayload = JSON.stringify({
     user_id: userId,
@@ -193,7 +193,7 @@ export async function updateSectionCompletion(
     `${baseUrl}/api/nw_application/application/user_section_completion/create_or_update/v1/`,
     {
       method: "POST",
-      headers: await getBearerHeaders(),
+      headers: getHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
@@ -227,7 +227,7 @@ export async function updateTemplateResponse(
     `${baseUrl}/api/nw_application/application/template_response/update/v1/`,
     {
       method: "POST",
-      headers: await getBearerHeaders(),
+      headers:  getHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data,
