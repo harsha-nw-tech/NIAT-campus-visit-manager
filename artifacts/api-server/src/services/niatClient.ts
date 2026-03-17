@@ -259,6 +259,7 @@ export async function generateDirectLink(
   applicationId: string,
 ) {
   const { applicationUrl } = getConfig();
-  console.log("[generateDirectLink] url:", applicationUrl);
-  return { applicationUrl };
+  const redirectUrl = `${applicationUrl}?user_id=${userId}&application_id=${applicationId}`;
+  console.log("[generateDirectLink] url:", redirectUrl);
+  return { redirectUrl };
 }
