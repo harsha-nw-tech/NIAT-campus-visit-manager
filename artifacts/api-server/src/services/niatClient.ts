@@ -32,6 +32,7 @@ export async function searchUserByPhone(phoneNumber: string) {
     const text = await res.text();
     throw new Error(`NIAT API error (${res.status}): ${text}`);
   }
+  
   return res.json();
 }
 
