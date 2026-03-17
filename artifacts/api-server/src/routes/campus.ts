@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
-import { getSectionsCompletion, updateSectionCompletion, generateDirectLink } from "../services/niatClient.js";
+import {
+  getSectionsCompletion,
+  updateSectionCompletion,
+  generateDirectLink,
+} from "../services/niatClient.js";
 import { updateTemplate } from "../services/templateService.js";
 import { db, auditLogsTable } from "@workspace/db";
 
@@ -10,29 +14,34 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { applicationId, userId } = req.body;
     if (!applicationId || !userId) {
-      res.status(400).json({ error: "Bad Request", message: "applicationId and userId are required" });
+      res.status(400).json({
+        error: "Bad Request",
+        message: "applicationId and userId are required",
+      });
       return;
     }
 
     let bookedCampusVisit: number | null = null;
     let visitedCampus: number | null = null;
+    let personalDetails: number | null = null;
     let completionAvailable = false;
 
     try {
       const data = await getSectionsCompletion(userId, applicationId);
       console.log("Get completion raw response:", JSON.stringify(data));
 
-      const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
-      const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
-      const persona
+      const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID;
+      const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID;
+      const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
 
-      const sections = Array.isArray(data?.data) ? data.data :
-        (data?.data ?? data?.sections ?? data ?? {});
+      const sections = Array.isArray(data?.data)
+        ? data.data
+        : (data?.data ?? data?.sections ?? data ?? {});
 
       const findCompletion = (id: string) => {
         if (Array.isArray(sections)) {
-          const entry = sections.find((s: any) =>
-            s.section_entity_config_id === id || s.id === id
+          const entry = sections.find(
+            (s: any) => s.section_entity_config_id === id || s.id === id,
           );
           return entry?.completion ?? entry?.completion_value ?? 0;
         }
@@ -41,12 +50,21 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
 
       bookedCampusVisit = findCompletion(bookedSectionId);
       visitedCampus = findCompletion(visitedSectionId);
+      personalDetails = findCompletion(personalSectionId);
       completionAvailable = true;
     } catch (completionErr: any) {
-      console.warn("Could not fetch completion data (requires user auth):", completionErr.message);
+      console.warn(
+        "Could not fetch completion data (requires user auth):",
+        completionErr.message,
+      );
     }
 
-    res.json({ bookedCampusVisit, visitedCampus, completionAvailable });
+    res.json({
+      bookedCampusVisit,
+      visitedCampus,
+      personalDetails,
+      completionAvailable,
+    });
   } catch (err: any) {
     console.error("Get completion error:", err);
     res.status(400).json({ error: "Failed", message: err.message });
@@ -61,7 +79,10 @@ router.post(
     try {
       const { userId, applicationId, phoneNumber } = req.body;
       if (!userId || !applicationId || !phoneNumber) {
-        res.status(400).json({ error: "Bad Request", message: "userId, applicationId, and phoneNumber are required" });
+        res.status(400).json({
+          error: "Bad Request",
+          message: "userId, applicationId, and phoneNumber are required",
+        });
         return;
       }
 
@@ -69,11 +90,24 @@ router.post(
       const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
       let niatUpdateSuccess = false;
       try {
-        await updateSectionCompletion(userId, applicationId, bookedSectionId, 100);
-        await updateSectionCompletion(userId, applicationId, visitedSectionId, 100);
+        await updateSectionCompletion(
+          userId,
+          applicationId,
+          bookedSectionId,
+          100,
+        );
+        await updateSectionCompletion(
+          userId,
+          applicationId,
+          visitedSectionId,
+          100,
+        );
         niatUpdateSuccess = true;
       } catch (niatErr: any) {
-        console.warn("Could not update NIAT completion (requires user auth):", niatErr.message);
+        console.warn(
+          "Could not update NIAT completion (requires user auth):",
+          niatErr.message,
+        );
       }
 
       await db.insert(auditLogsTable).values({
@@ -94,14 +128,17 @@ router.post(
       console.error("Mark visited error:", err);
       res.status(400).json({ error: "Failed", message: err.message });
     }
-  }
+  },
 );
 
 router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { userId, applicationId, phoneNumber } = req.body;
     if (!userId || !applicationId || !phoneNumber) {
-      res.status(400).json({ error: "Bad Request", message: "userId, applicationId, and phoneNumber are required" });
+      res.status(400).json({
+        error: "Bad Request",
+        message: "userId, applicationId, and phoneNumber are required",
+      });
       return;
     }
 
@@ -110,11 +147,15 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
     try {
       await updateTemplate(applicationId);
       templateUpdated = true;
-      console.log(`[generate-link] Template updated for application ${applicationId}`);
+      console.log(
+        `[generate-link] Template updated for application ${applicationId}`,
+      );
     } catch (templateErr: any) {
       // Template update requires user-level auth which is not available via API key.
       // Log the failure but continue — link is still generated so sales staff can proceed.
-      console.warn(`[generate-link] Template update failed (will still generate link): ${templateErr.message}`);
+      console.warn(
+        `[generate-link] Template update failed (will still generate link): ${templateErr.message}`,
+      );
     }
 
     // Step 2: Generate the direct link
@@ -133,7 +174,9 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
     res.json({ redirectUrl, success: true, templateUpdated });
   } catch (err: any) {
     console.error("Generate link error:", err);
-    res.status(400).json({ error: "Failed to initialize user", message: err.message });
+    res
+      .status(400)
+      .json({ error: "Failed to initialize user", message: err.message });
   }
 });
 
