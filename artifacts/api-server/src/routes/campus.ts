@@ -104,10 +104,22 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    await updateTemplate(applicationId);
+    // Step 1: Update template fields before generating link
+    let templateUpdated = false;
+    try {
+      await updateTemplate(applicationId);
+      templateUpdated = true;
+      console.log(`[generate-link] Template updated for application ${applicationId}`);
+    } catch (templateErr: any) {
+      // Template update requires user-level auth which is not available via API key.
+      // Log the failure but continue — link is still generated so sales staff can proceed.
+      console.warn(`[generate-link] Template update failed (will still generate link): ${templateErr.message}`);
+    }
 
+    // Step 2: Generate the direct link
     const { redirectUrl } = await generateDirectLink(userId, applicationId);
 
+    // Step 3: Audit log
     await db.insert(auditLogsTable).values({
       actionType: "DIRECT_LINK_GENERATED",
       performedBy: String(req.user!.userId),
@@ -117,10 +129,10 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
       phoneNumber,
     });
 
-    res.json({ redirectUrl, success: true });
+    res.json({ redirectUrl, success: true, templateUpdated });
   } catch (err: any) {
     console.error("Generate link error:", err);
-    res.status(400).json({ error: "Failed", message: err.message });
+    res.status(400).json({ error: "Failed to initialize user", message: err.message });
   }
 });
 

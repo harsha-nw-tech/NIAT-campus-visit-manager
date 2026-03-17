@@ -59,10 +59,14 @@ export default function SalesDashboard() {
     request: { headers: getHeaders() },
     mutation: {
       onSuccess: (data) => {
-        setGeneratedUrl(data.redirectUrl);
+        setGeneratedUrl(data.redirectUrl ?? "");
         setIsLinkModalOpen(true);
       },
-      onError: (err: any) => toast({ title: "Generation Failed", description: err.message, variant: "destructive" })
+      onError: () => toast({
+        title: "Failed to initialize user",
+        description: "Please try again.",
+        variant: "destructive"
+      })
     }
   });
 
@@ -151,9 +155,24 @@ export default function SalesDashboard() {
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-2">New Prospect Found</h3>
                   <p className="text-slate-600 mb-8">This phone number is not registered. You can generate a direct campus visit link for them to apply.</p>
-                  <Button size="lg" onClick={handleGenerateLink} isLoading={linkMutation.isPending} className="w-full sm:w-auto">
-                    <LinkIcon className="w-5 h-5 mr-2" />
-                    Generate Direct Visit Link
+                  <Button
+                    size="lg"
+                    onClick={handleGenerateLink}
+                    isLoading={linkMutation.isPending}
+                    disabled={linkMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {linkMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Initializing User…
+                      </>
+                    ) : (
+                      <>
+                        <LinkIcon className="w-5 h-5 mr-2" />
+                        Generate Direct Visit Link
+                      </>
+                    )}
                   </Button>
                 </Card>
               ) : (
