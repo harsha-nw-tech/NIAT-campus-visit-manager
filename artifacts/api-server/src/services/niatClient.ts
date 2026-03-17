@@ -13,32 +13,50 @@ const getHeaders = () => ({
 
 export async function searchUserByPhone(phoneNumber: string) {
   const { baseUrl } = getConfig();
+
+  const body = {
+    phone_number: phoneNumber,
+    country_code: "+91",
+    application_details: {
+      application_name_enum: process.env.NIAT_APPLICATION_NAME,
+      identity: process.env.NIAT_IDENTITY,
+      metadata: JSON.stringify({
+        application_type: "OFFLINE_EXAM_SUBMISSION",
+      }),
+    },
+  };
+
+  console.log(
+    "[searchUserByPhone] request body:",
+    JSON.stringify(body),
+  );
+
   const res = await fetch(
     `${baseUrl}/api/nw_application/user/phone_number/application/create/v1/`,
     {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({
-        phone_number: phoneNumber,
-        country_code: "+91",
-        application_details: {
-          application_name_enum: process.env.NIAT_APPLICATION_NAME,
-          identity: process.env.NIAT_IDENTITY,
-        },
-      }),
+      body: JSON.stringify(body),
     },
   );
+
   if (!res.ok) {
     const text = await res.text();
+    console.error(`[searchUserByPhone] error ${res.status}:`, text);
     throw new Error(`NIAT API error (${res.status}): ${text}`);
   }
-  
-  return res.json();
+
+  const data = await res.json();
+  console.log("[searchUserByPhone] response:", JSON.stringify(data));
+  return data;
 }
 
-export async function getUserProfile(
-  userId: string,
-): Promise<{ name: string | null; language: string | null }> {
+export async function getUserProfile(userId: string): Promise<{
+  userId: string | null;
+  name: string | null;
+  mobile: string | null;
+  language: string | null;
+}> {
   const { baseUrl } = getConfig();
 
   const query = `
@@ -47,6 +65,7 @@ export async function getUserProfile(
         success_response {
           user_id
           name
+          phone_number
           preferred_languages
         }
       }
@@ -62,20 +81,36 @@ export async function getUserProfile(
 
     if (!res.ok) {
       console.warn(`[getUserProfile] HTTP ${res.status}`);
-      return { name: null, language: null };
+      return { userId: null, name: null, mobile: null, language: null };
     }
 
-    const data = await res.json();
-    console.log("[getUserProfile] raw:", JSON.stringify(data));
-    const profile = data?.user_profile_details?.success_response;
+    const json = await res.json();
+    console.log("[getUserProfile] raw:", JSON.stringify(json));
+
+    // Response shape: { data: { user_profile_details: { success_response: { ... } } } }
+    const profile = json?.data?.user_profile_details?.success_response;
+    console.log("[getUserProfile] parsed profile:", JSON.stringify(profile));
+
     const rawLang = profile?.preferred_languages;
     const language = Array.isArray(rawLang)
       ? rawLang[0] || null
       : rawLang || null;
-    return { name: profile?.name || null, language };
+
+    const name =
+      profile?.name && profile.name.trim() !== "" ? profile.name : null;
+    const mobile = profile?.phone_number || null;
+    const canonicalUserId = profile?.user_id || null;
+
+    console.log(
+      "[getUserProfile] result → userId:", canonicalUserId,
+      "name:", name,
+      "mobile:", mobile,
+      "language:", language,
+    );
+    return { userId: canonicalUserId, name, mobile, language };
   } catch (err) {
     console.warn("[getUserProfile] error:", err);
-    return { name: null, language: null };
+    return { userId: null, name: null, mobile: null, language: null };
   }
 }
 
@@ -98,6 +133,13 @@ export async function getSectionsCompletion(
     ),
   });
 
+  console.log(
+    "[getSectionsCompletion] userId:",
+    userId,
+    "sections:",
+    [bookedSectionId, visitedSectionId],
+  );
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -118,11 +160,14 @@ export async function getSectionsCompletion(
       }),
     },
   );
+
+  const text = await res.text();
+  console.log(`[getSectionsCompletion] status ${res.status}:`, text);
+
   if (!res.ok) {
-    const text = await res.text();
     throw new Error(`NIAT API error (${res.status}): ${text}`);
   }
-  return res.json();
+  return JSON.parse(text);
 }
 
 export async function updateSectionCompletion(
@@ -141,6 +186,13 @@ export async function updateSectionCompletion(
     completion_value: completionValue,
   });
 
+  console.log(
+    "[updateSectionCompletion] sectionId:",
+    sectionEntityConfigId,
+    "value:",
+    completionValue,
+  );
+
   const res = await fetch(
     `${baseUrl}/api/nw_application/application/user_section_completion/create_or_update/v1/`,
     {
@@ -152,11 +204,14 @@ export async function updateSectionCompletion(
       }),
     },
   );
+
+  const text = await res.text();
+  console.log(`[updateSectionCompletion] status ${res.status}:`, text);
+
   if (!res.ok) {
-    const text = await res.text();
     throw new Error(`NIAT API error (${res.status}): ${text}`);
   }
-  return res.json();
+  return JSON.parse(text);
 }
 
 export async function updateTemplateResponse(
@@ -164,6 +219,14 @@ export async function updateTemplateResponse(
   data: string,
 ) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
+
+  console.log(
+    "[updateTemplateResponse] applicationId:",
+    applicationId,
+    "data:",
+    data,
+  );
+
   const res = await fetch(
     `${baseUrl}/api/nw_application/application/template_response/update/v1/`,
     {
@@ -175,11 +238,14 @@ export async function updateTemplateResponse(
       }),
     },
   );
+
+  const text = await res.text();
+  console.log(`[updateTemplateResponse] status ${res.status}:`, text);
+
   if (!res.ok) {
-    const text = await res.text();
     throw new Error(`Template API error (${res.status}): ${text}`);
   }
-  return res.json();
+  return JSON.parse(text);
 }
 
 export async function generateDirectLink(
@@ -188,5 +254,6 @@ export async function generateDirectLink(
 ) {
   const { baseUrl } = getConfig();
   const redirectUrl = `${baseUrl}/apply?user_id=${userId}&application_id=${applicationId}`;
+  console.log("[generateDirectLink] url:", redirectUrl);
   return { redirectUrl };
 }
