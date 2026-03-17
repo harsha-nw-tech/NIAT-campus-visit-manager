@@ -1,0 +1,419 @@
+Build a **production-ready fullstack web application** called **NIAT Campus Visit Manager**.
+
+This is an **internal tool** used by admins and sales assistants to manage campus visits and walk-in users.
+
+---
+
+# 🧱 TECH STACK (STRICT)
+
+* Frontend: React (Vite)
+* Backend: Node.js + Express
+* Database: Replit DB (or SQLite)
+* State: React hooks
+* Auth: Simple token-based (localStorage)
+* HTTP: fetch (no axios)
+
+---
+
+# 📁 PROJECT STRUCTURE (MANDATORY)
+
+```
+root/
+  client/
+  server/
+    index.js
+    routes/
+    controllers/
+    services/
+    config/
+    db/
+  shared/
+```
+
+---
+
+# 🗄️ DATABASE SCHEMA
+
+## Users
+
+```
+id
+phoneNumber (unique)
+password
+role ("admin" | "sales")
+```
+
+## Audit Logs
+
+```
+id
+actionType ("DIRECT_LINK_GENERATED" | "CAMPUS_MARKED")
+performedBy
+performerPhone
+targetUserId
+applicationId
+phoneNumber
+timestamp
+```
+
+---
+
+# 🔐 AUTH
+
+POST /api/auth/login
+
+Response:
+
+```
+{
+  token,
+  user: { id, role, phoneNumber }
+}
+```
+
+* Store token in localStorage
+* Sales login uses phoneNumber as username
+
+---
+
+# 🌐 ENV VARIABLES
+
+Use Replit secrets:
+
+* GAMMA_NIAT_API_BASE_URL
+* GAMMA_NIAT_API_KEY
+* COMMON_DATA_CLIENT_KEY_DETAILS_ID
+* TEMPLATE_ID
+* SECTION_ID
+* FIELD_ID
+
+---
+
+# 🔌 CENTRALIZED API CLIENT (IMPORTANT)
+
+Create:
+
+```
+// server/services/niatClient.js
+```
+
+Follow this structure:
+
+* getConfig()
+* getHeaders()
+* reusable API methods
+
+All external API calls MUST go through this file.
+
+---
+
+# 🔁 CORE APIs
+
+---
+
+## 1. SEARCH USER
+
+POST /api/search-user
+
+Call:
+
+`/api/nw_application/user/phone_number/application/create/v1/`
+
+Return full response including:
+
+* isNewUser
+* userId
+* applicationId
+* student info
+
+---
+
+## 2. GET COMPLETION
+
+POST /api/get-completion
+
+Call:
+
+`/api/nw_application/applications/user_sections_completion/get/v1/`
+
+Return:
+
+```
+{
+  bookedCampusVisit,
+  visitedCampus
+}
+```
+
+---
+
+## 3. MARK CAMPUS VISITED
+
+POST /api/mark-visited
+
+* Only SALES role allowed
+
+Call:
+
+`/api/nw_application/application/user_section_completion/create_or_update/v1/`
+
+Update BOTH:
+
+* bookedCampusVisit → 100%
+* visitedCampus → 100%
+
+Insert log:
+
+```
+CAMPUS_MARKED
+```
+
+---
+
+## 4. GENERATE DIRECT LINK (UPDATED FLOW)
+
+POST /api/generate-link
+
+Body:
+
+```
+{ userId, applicationId, phoneNumber }
+```
+
+---
+
+# 🔥 NEW FLOW: TEMPLATE INITIALIZATION (MANDATORY STEP)
+
+When `isNewUser = true`, before generating the direct link:
+
+---
+
+## STEP 1: CALL TEMPLATE RESPONSE API
+
+Backend should call:
+
+```
+POST /api/nw_application/application/template_response/update/v1/
+```
+
+---
+
+## REQUEST FORMAT
+
+```
+{
+  "clientKeyDetailsId": process.env.COMMON_DATA_CLIENT_KEY_DETAILS_ID,
+  "data": "<stringified JSON>"
+}
+```
+
+---
+
+## DATA PAYLOAD STRUCTURE
+
+The `data` field must be a stringified JSON string:
+
+```
+{
+  application_id: applicationId,
+  template_id: TEMPLATE_ID,
+  section_id: SECTION_ID,
+  field_id: FIELD_ID,
+  field_value: FIELD_VALUE
+}
+```
+
+Then stringify like:
+
+```
+data: `'${JSON.stringify(payload)}'`
+```
+
+---
+
+# ⚙️ CONFIGURATION
+
+Create:
+
+```
+// server/config/templateConfig.js
+```
+
+```
+export const TEMPLATE_CONFIG = {
+  TEMPLATE_ID: process.env.TEMPLATE_ID,
+  SECTION_ID: process.env.SECTION_ID,
+  FIELD_ID: process.env.FIELD_ID,
+  FIELD_VALUE: "PCM / MPC (Maths)"
+};
+```
+
+---
+
+# 🔌 TEMPLATE SERVICE
+
+Create:
+
+```
+// server/services/templateService.js
+```
+
+Function:
+
+```
+updateTemplate(applicationId)
+```
+
+* Uses TEMPLATE_CONFIG
+* Calls template API
+
+---
+
+# 🔁 FINAL FLOW IN /api/generate-link
+
+```
+1. Receive userId, applicationId, phoneNumber
+
+2. Call updateTemplate(applicationId)
+
+3. If template API fails:
+   → return error
+
+4. If success:
+   → generate redirectUrl
+
+5. Insert audit log:
+   DIRECT_LINK_GENERATED
+
+6. Return redirectUrl
+```
+
+---
+
+# 🚫 RULES
+
+* Do NOT generate link if template API fails
+* No partial success
+* Always log actions
+
+---
+
+# 📲 WHATSAPP SHARE
+
+Frontend should open:
+
+```
+https://wa.me/<phone>?text=<encoded_url>
+```
+
+---
+
+# 👨‍💼 ADMIN APIs
+
+## Create Sales
+
+POST /api/admin/create-sales
+
+---
+
+## Logs
+
+GET /api/logs
+
+Filters:
+
+* phoneNumber
+* performedBy
+
+---
+
+# 🧠 FRONTEND FLOW
+
+---
+
+## SALES DASHBOARD
+
+1. Enter phone number
+2. Call /api/search-user
+
+---
+
+## CASE 1: isNewUser = true
+
+Show:
+👉 Generate Direct Visit Link
+
+On click:
+
+* Call /api/generate-link
+* Backend handles template + link
+
+Success:
+
+* Show modal with link
+* Copy + WhatsApp buttons
+
+Failure:
+
+* Show error toast
+
+---
+
+## CASE 2: Existing User
+
+Call /api/get-completion
+
+Display:
+
+* userId
+* applicationId
+* bookedCampusVisit %
+* visitedCampus %
+
+---
+
+### If visitedCampus < 100
+
+Show:
+👉 Mark Campus Visited
+
+Call /api/mark-visited
+
+---
+
+### If both 100%
+
+Show completed state
+
+---
+
+# ⚡ UX RULES
+
+* Disable buttons during API calls
+* Show loading states
+* Prevent duplicate actions
+* Show success/error toasts
+
+---
+
+# 🧪 EDGE CASES
+
+* Template API fails → stop flow
+* Invalid IDs → error
+* Network failure → retry
+* Duplicate clicks → blocked
+
+---
+
+# 🚀 OUTPUT EXPECTATION
+
+* Fully working fullstack app
+* Clean modular code
+* Centralized API handling
+* No hardcoded IDs
+* Proper error handling
+* Ready to run in Replit
+
+---
+
+Build the complete system end-to-end with working backend, frontend, and API integration.
