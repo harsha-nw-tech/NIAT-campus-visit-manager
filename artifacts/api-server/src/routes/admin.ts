@@ -21,7 +21,11 @@ router.post(
       res.json({ success: true, message: "Sales user created successfully" });
     } catch (err: any) {
       console.error("Create sales error:", err);
-      if (err.message?.includes("unique")) {
+      const isDuplicate =
+        err.cause?.code === "23505" ||
+        err.message?.includes("unique") ||
+        err.cause?.message?.includes("unique");
+      if (isDuplicate) {
         res.status(400).json({ error: "Conflict", message: "A user with this phone number already exists" });
       } else {
         res.status(400).json({ error: "Failed", message: err.message });
