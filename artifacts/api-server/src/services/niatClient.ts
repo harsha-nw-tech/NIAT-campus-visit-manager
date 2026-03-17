@@ -1,5 +1,3 @@
-import { getServiceToken } from "./tokenService.js";
-
 const getConfig = () => ({
   baseUrl: (process.env.GAMMA_NIAT_API_BASE_URL || "").trim(),
   apiKey: (process.env.GAMMA_NIAT_API_KEY || "").trim(),
@@ -12,14 +10,6 @@ const getHeaders = () => ({
   "Content-Type": "application/json",
   "x-api-key": getConfig().apiKey,
 });
-
-const getBearerHeaders = async (): Promise<Record<string, string>> => {
-  const token = await getServiceToken();
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-};
 
 export async function searchUserByPhone(phoneNumber: string) {
   const { baseUrl } = getConfig();
@@ -36,10 +26,7 @@ export async function searchUserByPhone(phoneNumber: string) {
     },
   };
 
-  console.log(
-    "[searchUserByPhone] request body:",
-    JSON.stringify(body),
-  );
+  console.log("[searchUserByPhone] request body:", JSON.stringify(body));
 
   const res = await fetch(
     `${baseUrl}/api/nw_application/user/phone_number/application/create/v1/`,
@@ -97,7 +84,6 @@ export async function getUserProfile(userId: string): Promise<{
     const json = await res.json();
     console.log("[getUserProfile] raw:", JSON.stringify(json));
 
-    // Response shape: { data: { user_profile_details: { success_response: { ... } } } }
     const profile = json?.data?.user_profile_details?.success_response;
     console.log("[getUserProfile] parsed profile:", JSON.stringify(profile));
 
@@ -149,7 +135,7 @@ export async function getSectionsCompletion(
     `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
     {
       method: "POST",
-      headers:  getHeaders(),
+      headers: getHeaders(),
       body: JSON.stringify({
         clientKeyDetailsId,
         data: `'${dataPayload}'`,
@@ -173,7 +159,7 @@ export async function updateSectionCompletion(
   completionValue: number,
 ) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
-  const applicationName = process.env.NIAT_APPLICATION_NAME ;
+  const applicationName = process.env.NIAT_APPLICATION_NAME;
 
   const dataPayload = JSON.stringify({
     user_id: userId,
@@ -183,10 +169,8 @@ export async function updateSectionCompletion(
   });
 
   console.log(
-    "[updateSectionCompletion] sectionId:",
-    sectionEntityConfigId,
-    "value:",
-    completionValue,
+    "[updateSectionCompletion] sectionId:", sectionEntityConfigId,
+    "value:", completionValue,
   );
 
   const res = await fetch(
@@ -210,36 +194,46 @@ export async function updateSectionCompletion(
   return JSON.parse(text);
 }
 
-export async function updateTemplateResponse(
+export async function updateUserTemplateField(
+  userId: string,
   applicationId: string,
-  data: string,
 ) {
-  const { baseUrl, clientKeyDetailsId } = getConfig();
+  const { baseUrl } = getConfig();
 
-  console.log(
-    "[updateTemplateResponse] applicationId:",
-    applicationId,
-    "data:",
-    data,
-  );
+  const templateId = process.env.TEMPLATE_ID || "";
+  const sectionId = process.env.SECTION_ID || "";
+  const fieldId = process.env.FIELD_ID || "";
+  const fieldValue = "PCM / MPC (Maths)";
+
+  if (!templateId) throw new Error("TEMPLATE_ID is not configured");
+  if (!sectionId) throw new Error("SECTION_ID is not configured");
+  if (!fieldId) throw new Error("FIELD_ID is not configured");
+
+  const payload = {
+    application_id: applicationId,
+    user_id: userId,
+    template_id: templateId,
+    section_id: sectionId,
+    field_id: fieldId,
+    field_value: fieldValue,
+  };
+
+  console.log("[updateUserTemplateField] payload:", JSON.stringify(payload));
 
   const res = await fetch(
-    `${baseUrl}/api/nw_application/application/template_response/update/v1/`,
+    `${baseUrl}/api/nw_application/application/user/template_response/update/v1/`,
     {
       method: "POST",
-      headers: await getBearerHeaders(),
-      body: JSON.stringify({
-        clientKeyDetailsId,
-        data,
-      }),
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
     },
   );
 
   const text = await res.text();
-  console.log(`[updateTemplateResponse] status ${res.status}:`, text);
+  console.log(`[updateUserTemplateField] status ${res.status}:`, text);
 
   if (!res.ok) {
-    throw new Error(`Template API error (${res.status}): ${text}`);
+    throw new Error(`User template field update failed (${res.status}): ${text}`);
   }
   return JSON.parse(text);
 }

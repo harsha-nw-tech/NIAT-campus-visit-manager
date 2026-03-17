@@ -3,9 +3,9 @@ import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
 import {
   getSectionsCompletion,
   updateSectionCompletion,
+  updateUserTemplateField,
   generateDirectLink,
 } from "../services/niatClient.js";
-import { updateTemplate } from "../services/templateService.js";
 import { db, auditLogsTable } from "@workspace/db";
 
 const router = Router();
@@ -125,6 +125,25 @@ router.post(
   },
 );
 
+router.post("/update-user-field", requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const { userId, applicationId } = req.body;
+    if (!userId || !applicationId) {
+      res.status(400).json({ error: "Bad Request", message: "userId and applicationId are required" });
+      return;
+    }
+
+    console.log(`[update-user-field] userId: ${userId} applicationId: ${applicationId}`);
+    await updateUserTemplateField(userId, applicationId);
+    console.log(`[update-user-field] Success for userId: ${userId}`);
+
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("[update-user-field] error:", err);
+    res.status(400).json({ error: "Failed to update user field", message: err.message });
+  }
+});
+
 router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { userId, applicationId, phoneNumber } = req.body;
@@ -136,15 +155,8 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Step 1: Update template fields — MUST succeed before link is generated
-    console.log(`[generate-link] Updating template for application ${applicationId}`);
-    await updateTemplate(applicationId);
-    console.log(`[generate-link] Template updated successfully for application ${applicationId}`);
-
-    // Step 2: Generate the direct link
     const { redirectUrl } = await generateDirectLink(userId, applicationId);
 
-    // Step 3: Audit log
     await db.insert(auditLogsTable).values({
       actionType: "DIRECT_LINK_GENERATED",
       performedBy: String(req.user!.userId),
@@ -154,12 +166,10 @@ router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
       phoneNumber,
     });
 
-    res.json({ redirectUrl, success: true, templateUpdated: true });
+    res.json({ redirectUrl, success: true });
   } catch (err: any) {
     console.error("Generate link error:", err);
-    res
-      .status(400)
-      .json({ error: "Failed to initialize user", message: err.message });
+    res.status(400).json({ error: "Failed to generate link", message: err.message });
   }
 });
 

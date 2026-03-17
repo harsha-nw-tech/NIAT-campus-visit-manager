@@ -795,3 +795,53 @@ export function useGetLogs<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update user template field
+ */
+export const getUpdateUserFieldUrl = () => {
+  return `/api/update-user-field`;
+};
+
+export const updateUserField = async (
+  request: { userId: string; applicationId: string },
+  options?: RequestInit,
+): Promise<{ success: boolean }> => {
+  return customFetch<{ success: boolean }>(getUpdateUserFieldUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(request),
+  });
+};
+
+export const useUpdateUserField = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateUserField>>,
+    TError,
+    { data: { userId: string; applicationId: string } },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateUserField>>,
+  TError,
+  { data: { userId: string; applicationId: string } },
+  TContext
+> => {
+  const { mutation: mutationOptions, request: requestOptions } = options ?? {};
+  const mutationKey = ["updateUserField"];
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateUserField>>,
+    { data: { userId: string; applicationId: string } }
+  > = (props) => {
+    const { data } = props ?? {};
+    return updateUserField(data, requestOptions);
+  };
+
+  return useMutation({ mutationKey, mutationFn, ...mutationOptions });
+};
