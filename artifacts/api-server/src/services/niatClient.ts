@@ -19,14 +19,14 @@ const getHeaders = () => ({
 });
 
 export async function searchUserByPhone(phoneNumber: string) {
-  const { baseUrl } = getConfig();
+  const { baseUrl, applicationName, identity, countryCode } = getConfig();
 
   const body = {
     phone_number: phoneNumber,
-    country_code: "+91",
+    country_code: countryCode,
     application_details: {
-      application_name_enum: process.env.NIAT_APPLICATION_NAME,
-      identity: process.env.NIAT_IDENTITY,
+      application_name_enum: applicationName,
+      identity: identity,
       metadata: JSON.stringify({
         application_type: "OFFLINE_EXAM_SUBMISSION",
       }),
