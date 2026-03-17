@@ -24,3 +24,8 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+GAMMA_NIAT_API_BASE_URL = "https://ib-user-accounts-backend-gamma-apis.ccbp.in"

@@ -1,0 +1,790 @@
+/**
+* NIAT Backend API Client
+* Handles all communication with the NIAT backend APIs
+* Configuration is loaded from the centralized config system
+*/
+ 
+import {
+    getNiatConfig,
+    validateNiatConfig,
+    isRetakeDisabled as checkRetakeDisabled,
+  } from "./config";
+   
+  // Get configuration from centralized config system
+  const getConfig = () => {
+    const validation = validateNiatConfig();
+    if (!validation.valid) {
+      throw new Error(
+        `Missing NIAT configuration: ${validation.missing.join(", ")}`,
+      );
+    }
+   
+    const config = getNiatConfig();
+    return {
+      baseUrl: config.apiBaseUrl,
+      apiKey: config.apiKey,
+      paymentEntityId: config.paymentEntityId,
+      testEntityId: config.testEntityId,
+      retakeEntityId: config.retakeEntityId,
+      slotEntityId: config.slotEntityId,
+      retakeSlotEntityId: config.retakeSlotEntityId,
+      clientKeyDetailsId: config.clientKeyDetailsId,
+      applicationName: config.applicationName,
+      countryCode: config.countryCode,
+      identity: config.identity,
+      addressType: config.addressType,
+    };
+  };
+   
+  // Export retake disabled check
+  export const isRetakeDisabled = checkRetakeDisabled;
+   
+  // Common headers for all API requests
+  const getHeaders = () => {
+    const { apiKey } = getConfig();
+    return {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+    };
+  };
+   
+  // Types for API responses
+  export interface UserCreateResponse {
+    user_id: string;
+    [key: string]: any;
+  }
+   
+  export interface UserProfileResponse {
+    success_response?: {
+      user_id: string;
+      name: string | null;
+    };
+  }
+   
+  export interface UserAddressResponse {
+    success_response?: Array<{
+      state_name: string | null;
+      district_name: string | null;
+    }>;
+  }
+   
+  export interface SectionCompletionItem {
+    section_entity_config_id: string;
+    completion_percentage: number;
+  }
+   
+  export interface SectionCompletionResponse {
+    section_completions?: SectionCompletionItem[];
+    section_details?: SectionCompletionItem[];
+    [key: string]: any;
+  }
+   
+  export interface StudentData {
+    userId: string;
+    applicationId: string;
+    name: string | null;
+    language: string | null;
+    state: string | null;
+    district: string | null;
+    paymentCompletion: number;
+    testCompletion: number;
+    retakeCompletion: number;
+    slotCompletion: number;
+  }
+   
+  /**
+  * STEP 1: Create/Get User by Phone
+  * POST /api/nw_application/user/phone_number/application/create/v1/
+  */
+  export async function createUserByPhone(
+    phoneNumber: string,
+  ): Promise<{ user_id: string; application_id: string }> {
+    const { baseUrl, countryCode, applicationName, identity } = getConfig();
+    const url = `${baseUrl}/api/nw_application/user/phone_number/application/create/v1/`;
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        phone_number: phoneNumber,
+        country_code: countryCode,
+        application_details: {
+          application_name_enum: applicationName,
+          identity: identity,
+          metadata: JSON.stringify({ application_type: "OFFLINE_EXAM_SUBMISSION" }),
+        },
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `[createUserByPhone] Error: ${response.status} - ${errorText}`,
+      );
+      throw new Error(`Failed to create user: ${response.status} - ${errorText}`);
+    }
+   
+    const data = await response.json();
+    return data;
+  }
+   
+  /**
+  * STEP 2: Get user name via GraphQL
+  * Determines if user is new (no name) or existing (has name)
+  */
+  export async function getUserProfile(userId: string): Promise<{ name: string | null; mobile: string | null; language: string | null } | null> {
+    const { baseUrl } = getConfig();
+    const url = `${baseUrl}/graphql/`;
+   
+    // Query to get name, phone number, and preferred language
+    const query = `
+      query GetUserProfile($userId: String) {
+        user_profile_details(user_id: $userId) {
+          success_response {
+            user_id
+            name
+            phone_number
+            preferred_languages
+          }
+        }
+      }
+    `;
+   
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          query,
+          variables: { userId },
+        }),
+      });
+   
+      if (!response.ok) {
+        console.error(`[getUserProfile] Error: ${response.status}`);
+        return null;
+      }
+   
+      const data = await response.json();
+      const profile = data?.data?.user_profile_details?.success_response;
+   
+      if (!profile) return null;
+   
+      return {
+        name: profile.name || null,
+        mobile: profile.phone_number || null,
+        language: profile.preferred_languages || null,
+      };
+    } catch (error) {
+      console.error("[getUserProfile] Exception:", error);
+      return null;
+    }
+  }
+   
+  export async function getUserName(userId: string): Promise<{ name: string | null; language: string | null }> {
+    const { baseUrl } = getConfig();
+    const url = `${baseUrl}/graphql/`;
+   
+    const query = `
+      query GetUserName($userId: String) {
+        user_profile_details(user_id: $userId) {
+          success_response {
+            user_id
+            name
+            preferred_languages
+          }
+        }
+      }
+    `;
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        query,
+        variables: { userId },
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[getUserName] Error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to get user name: ${response.status} - ${errorText}`,
+      );
+    }
+   
+    const data = await response.json();
+    const profile = data?.data?.user_profile_details?.success_response;
+    // preferred_languages may be a string or an array — normalize to a single string
+    const rawLang = profile?.preferred_languages;
+    const language = Array.isArray(rawLang) ? (rawLang[0] || null) : (rawLang || null);
+    return {
+      name: profile?.name || null,
+      language,
+    };
+  }
+   
+  /**
+  * Get user address via GraphQL
+  */
+  export async function getUserAddress(
+    userId: string,
+  ): Promise<{ state: string | null; district: string | null }> {
+    const { baseUrl } = getConfig();
+    const url = `${baseUrl}/graphql/`;
+   
+    const query = `
+      query GetAddress($userId: String) {
+        user_address_details(user_id: $userId) {
+          success_response {
+            state_name
+            district_name
+          }
+        }
+      }
+    `;
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        query,
+        variables: { userId },
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[getUserAddress] Error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to get user address: ${response.status} - ${errorText}`,
+      );
+    }
+   
+    const data = await response.json();
+    // success_response is an array - get the first item
+    const addressArray = data?.data?.user_address_details?.success_response;
+    const addressData = Array.isArray(addressArray)
+      ? addressArray[0]
+      : addressArray;
+   
+    const result = {
+      state: addressData?.state_name || null,
+      district: addressData?.district_name || null,
+    };
+    return result;
+  }
+   
+  /**
+  * Internal helper to get section completion
+  */
+  export async function getSectionCompletion(
+    userId: string,
+    accessToken?: string,
+    applicationId?: string,
+  ): Promise<{
+    payment: number;
+    test: number;
+    retake: number;
+    slot: number;
+  }> {
+    const {
+      baseUrl,
+      paymentEntityId,
+      testEntityId,
+      retakeEntityId,
+      slotEntityId,
+      clientKeyDetailsId,
+    } = getConfig();
+    const url = `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`;
+   
+    const { applicationName } = getConfig();
+   
+    // Build the data payload as a stringified JSON
+    const dataPayload = JSON.stringify({
+      user_id: userId,
+      application_name_enum: applicationName,
+      section_entity_config_ids: [paymentEntityId, testEntityId, retakeEntityId, slotEntityId].filter(Boolean),
+    });
+   
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+   
+    if (accessToken) {
+      headers["Authorization"] = "Bearer " + accessToken;
+    }
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        clientKeyDetailsId: clientKeyDetailsId,
+        data: `'${dataPayload}'`,
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to get section completion: ${response.status} - ${errorText}`,
+      );
+    }
+   
+    const data: SectionCompletionResponse = await response.json();
+    // API returns section_details, not section_completions
+    const completions = data?.section_details || data?.section_completions || [];
+   
+    let payment = 0;
+    let test = 0;
+    let retake = 0;
+    let slot = 0;
+   
+    for (const item of completions) {
+      if (item.section_entity_config_id === paymentEntityId) {
+        payment = item.completion_percentage || 0;
+      } else if (item.section_entity_config_id === testEntityId) {
+        test = item.completion_percentage || 0;
+      } else if (item.section_entity_config_id === retakeEntityId) {
+        retake = item.completion_percentage || 0;
+      } else if (slotEntityId && item.section_entity_config_id === slotEntityId) {
+        slot = item.completion_percentage || 0;
+      }
+    }
+   
+    return { payment, test, retake, slot };
+  }
+   
+  /**
+  * Update user name via GraphQL mutation
+  */
+  export async function updateUserName(
+    userId: string,
+    name: string,
+  ): Promise<void> {
+    const { baseUrl } = getConfig();
+    const url = `${baseUrl}/graphql/`;
+   
+    const mutation = `
+      mutation UpdateUserName($input: UserBasicProfilesDetailsInput!) {
+        create_or_update_user_profile_details(user_basic_details_input: $input) {
+          completion_percentage
+        }
+      }
+    `;
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          input: {
+            user_id: userId,
+            name: name,
+          },
+        },
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[updateUserName] Error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to update user name: ${response.status} - ${errorText}`,
+      );
+    }
+    const data = await response.json();
+    if (data?.errors) {
+      throw new Error(`GraphQL error updating user name`);
+    }
+  }
+   
+  /**
+  * Update user preferred language via GraphQL mutation
+  * Uses the same create_or_update_user_profile_details mutation with preferred_languages + section_id
+  */
+  export async function updateUserLanguage(
+    userId: string,
+    language: string,
+  ): Promise<void> {
+    const { baseUrl } = getConfig();
+    const url = `${baseUrl}/graphql/`;
+   
+    const mutation = `
+      mutation CreateOrUpdateUserBasicProfilesDetails($user_basic_details_input: UserBasicProfilesDetailsInput!) {
+        create_or_update_user_profile_details(user_basic_details_input: $user_basic_details_input) {
+          completion_percentage
+          failure_response {
+            res_status
+            response
+          }
+        }
+      }
+    `;
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          user_basic_details_input: {
+            user_id: userId,
+            preferred_languages: language.toUpperCase(),
+            section_id: "ef4bcaff-8425-424e-a44c-0ebc8a4dbe10",
+          },
+        },
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[updateUserLanguage] Error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Failed to update user language: ${response.status} - ${errorText}`,
+      );
+    }
+    const data = await response.json();
+    if (data?.errors) {
+      throw new Error(`GraphQL error updating user language`);
+    }
+  }
+   
+  /**
+  * Update user address via GraphQL mutation
+  */
+  export async function updateUserAddress(
+    userId: string,
+    state?: string,
+    district?: string,
+  ): Promise<void> {
+    const { baseUrl } = getConfig();
+    const url = `${baseUrl}/graphql/`;
+   
+    const mutation = `
+      mutation UpdateAddress($input: UserAddressDetailsInput!) {
+        create_or_update_user_address_details(user_address_details_input: $input) {
+          completion_percentage
+        }
+      }
+    `;
+   
+    const { addressType } = getConfig();
+   
+    const input: any = {
+      user_id: userId,
+      address_type: addressType,
+    };
+   
+    if (state) {
+      input.state_name = state;
+    }
+    if (district) {
+      input.district_name = district;
+    }
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        query: mutation,
+        variables: { input },
+      }),
+    });
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `[updateUserAddress] Error: ${response.status} - ${errorText}`,
+      );
+      throw new Error(
+        `Failed to update user address: ${response.status} - ${errorText}`,
+      );
+    }
+    const data = await response.json();
+    if (data?.errors) {
+      throw new Error(`GraphQL error updating user address`);
+    }
+  }
+   
+  /**
+  * Update section completion (payment and/or test to 100%)
+  * Uses Bearer token authentication with new body format
+  * POST /api/nw_application/application/user_section_completion/create_or_update/v1/
+  */
+  export async function updateSectionCompletion(
+    userId: string,
+    sections: {
+      payment?: boolean;
+      test?: boolean;
+      retake?: boolean;
+      slot?: boolean;
+      retakeSlot?: boolean;
+    },
+    accessToken?: string,
+  ): Promise<void> {
+    const {
+      baseUrl,
+      paymentEntityId,
+      testEntityId,
+      retakeEntityId,
+      slotEntityId,
+      retakeSlotEntityId,
+      clientKeyDetailsId,
+      applicationName,
+    } = getConfig();
+    const url = `${baseUrl}/api/nw_application/application/user_section_completion/create_or_update/v1/`;
+   
+    const sectionDetails: SectionCompletionItem[] = [];
+   
+    if (sections.payment) {
+      sectionDetails.push({
+        section_entity_config_id: paymentEntityId,
+        completion_percentage: 100.0,
+      });
+    }
+   
+    if (sections.test) {
+      sectionDetails.push({
+        section_entity_config_id: testEntityId,
+        completion_percentage: 100.0,
+      });
+    }
+   
+    // Include slot_entity_id when updating normal test flow (payment or test)
+    if (sections.slot && slotEntityId) {
+      sectionDetails.push({
+        section_entity_config_id: slotEntityId,
+        completion_percentage: 100.0,
+      });
+    }
+   
+    if (sections.retake) {
+      sectionDetails.push({
+        section_entity_config_id: retakeEntityId,
+        completion_percentage: 100.0,
+      });
+    }
+   
+    // Include retake_slot_entity_id when updating retake flow
+    if (sections.retakeSlot && retakeSlotEntityId) {
+      sectionDetails.push({
+        section_entity_config_id: retakeSlotEntityId,
+        completion_percentage: 100.0,
+      });
+    }
+   
+    if (sectionDetails.length === 0) {
+      console.log(`[updateSectionCompletion] No sections to update, skipping.`);
+      return;
+    }
+   
+    // Build the data payload as a stringified JSON
+    const dataPayload = JSON.stringify({
+      user_id: userId,
+      application_name_enum: applicationName,
+      section_details: sectionDetails,
+    });
+   
+    console.log(`[updateSectionCompletion] userId=${userId}, sections:`, JSON.stringify(sections));
+    console.log(`[updateSectionCompletion] sectionDetails:`, JSON.stringify(sectionDetails));
+    console.log(`[updateSectionCompletion] dataPayload:`, dataPayload);
+   
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+   
+    if (accessToken) {
+      headers["Authorization"] = "Bearer " + accessToken;
+    }
+   
+    const requestBody = JSON.stringify({
+      clientKeyDetailsId: clientKeyDetailsId,
+      data: `'${dataPayload}'`,
+    });
+    console.log(`[updateSectionCompletion] Request URL: ${url}`);
+    console.log(`[updateSectionCompletion] Request body:`, requestBody);
+   
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: requestBody,
+    });
+   
+    const responseText = await response.text();
+    console.log(`[updateSectionCompletion] Response status: ${response.status}`);
+    console.log(`[updateSectionCompletion] Response body:`, responseText);
+   
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update section completion: ${response.status} - ${responseText}`,
+      );
+    }
+    console.log(`[updateSectionCompletion] Successfully updated sections for userId=${userId}`);
+  }
+   
+  /**
+  * Complete flow: Verify student by phone number
+  * Returns full student data - always fetches all available data
+  */
+  export async function verifyStudentByPhone(
+    phoneNumber: string,
+    accessToken?: string,
+  ): Promise<{
+    isNewUser: boolean;
+    userId: string;
+    applicationId: string;
+    data: StudentData;
+  }> {
+    // Step 1: Create/get user by phone (uses x-api-key)
+    const userResponse = await createUserByPhone(phoneNumber);
+    const userId = userResponse.user_id;
+    const applicationId = userResponse.application_id;
+   
+    if (!userId) {
+      throw new Error("Failed to get user_id from API response");
+    }
+   
+    // Step 2: Fetch ALL data in parallel (name+language, address, completion)
+    const [profileData, address, completion] = await Promise.all([
+      getUserName(userId),
+      getUserAddress(userId),
+      getSectionCompletion(userId, accessToken, applicationId),
+    ]);
+   
+    // User is considered "new" only if they have no name
+    const isNewUser = !profileData.name;
+   
+    const result = {
+      isNewUser,
+      userId,
+      applicationId,
+      data: {
+        userId,
+        applicationId,
+        name: profileData.name,
+        language: profileData.language,
+        state: address.state,
+        district: address.district,
+        paymentCompletion: completion.payment,
+        testCompletion: completion.test,
+        retakeCompletion: completion.retake,
+        slotCompletion: completion.slot,
+      },
+    };
+   
+    return result;
+  }
+   
+  /**
+  * Add new student (new user flow)
+  * Updates name, address, and marks payment/test as complete
+  */
+  export async function addNewStudent(
+    userId: string,
+    name: string,
+    state: string,
+    district: string,
+    accessToken?: string,
+    language?: string,
+  ): Promise<void> {
+    // Step A: Update name
+    await updateUserName(userId, name);
+   
+    // Step B: Update address
+    await updateUserAddress(userId, state, district);
+   
+    // Step C: Update language if provided
+    if (language) {
+      await updateUserLanguage(userId, language);
+    }
+   
+    // Step D: Mark payment, test, and slot as 100%
+    await updateSectionCompletion(
+      userId,
+      { payment: true, test: true, slot: true },
+      accessToken,
+    );
+  }
+   
+  /**
+  * Submit updates for existing user (only missing fields)
+  */
+  export async function submitExistingUserUpdates(
+    userId: string,
+    updates: {
+      name?: string;
+      state?: string;
+      district?: string;
+      language?: string;
+      markPayment?: boolean;
+      markTest?: boolean;
+    },
+    accessToken?: string,
+  ): Promise<void> {
+    console.log(`[submitExistingUserUpdates] Called for userId=${userId}`);
+    console.log(`[submitExistingUserUpdates] Updates:`, JSON.stringify(updates));
+    console.log(`[submitExistingUserUpdates] accessToken present: ${!!accessToken}`);
+   
+    const promises: Promise<void>[] = [];
+   
+    // Update name if provided
+    if (updates.name) {
+      console.log(`[submitExistingUserUpdates] Will update name to: "${updates.name}"`);
+      promises.push(updateUserName(userId, updates.name));
+    }
+   
+    // Update address if state or district provided
+    if (updates.state || updates.district) {
+      console.log(`[submitExistingUserUpdates] Will update address: state="${updates.state}", district="${updates.district}"`);
+      promises.push(updateUserAddress(userId, updates.state, updates.district));
+    }
+   
+    // Update language if provided
+    if (updates.language) {
+      console.log(`[submitExistingUserUpdates] Will update language to: "${updates.language}"`);
+      promises.push(updateUserLanguage(userId, updates.language));
+    }
+   
+    // Update section completion if needed (include slot when updating payment or test)
+    if (updates.markPayment || updates.markTest) {
+      console.log(`[submitExistingUserUpdates] Will update section completion: payment=${updates.markPayment}, test=${updates.markTest}, slot=true`);
+      promises.push(
+        updateSectionCompletion(
+          userId,
+          {
+            payment: updates.markPayment,
+            test: updates.markTest,
+            slot: true, // Always include slot when updating payment/test in normal flow
+          },
+          accessToken,
+        ),
+      );
+    } else {
+      console.log(`[submitExistingUserUpdates] SKIPPING section completion update (markPayment=${updates.markPayment}, markTest=${updates.markTest})`);
+    }
+   
+    console.log(`[submitExistingUserUpdates] Executing ${promises.length} parallel operations...`);
+    await Promise.all(promises);
+    console.log(`[submitExistingUserUpdates] All operations completed successfully for userId=${userId}`);
+  }
+   
+  /**
+  * Process retake for existing user
+  * Updates retake and retake_slot entity IDs
+  */
+  export async function processRetake(
+    userId: string,
+    accessToken?: string,
+  ): Promise<void> {
+    // Update retake and retake_slot to 100% (retake flow only)
+    await updateSectionCompletion(
+      userId,
+      { retake: true, retakeSlot: true },
+      accessToken,
+    );
+  }
+  
+   

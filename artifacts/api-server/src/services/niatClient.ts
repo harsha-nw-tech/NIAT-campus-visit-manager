@@ -20,8 +20,8 @@ export async function searchUserByPhone(phoneNumber: string) {
         phone_number: phoneNumber,
         country_code: "91",
         application_details: {
-          application_name_enum: process.env.NIAT_APPLICATION_NAME || "NIAT",
-          identity: process.env.NIAT_IDENTITY || "NIAT",
+          application_name_enum: process.env.NIAT_APPLICATION_NAME ,
+          identity: process.env.NIAT_IDENTITY,
         },
       }),
     }
@@ -75,9 +75,9 @@ export async function getUserProfile(userId: string): Promise<{ name: string | n
 export async function getSectionsCompletion(userId: string, applicationId: string, accessToken?: string) {
   const { baseUrl, clientKeyDetailsId } = getConfig();
 
-  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID || "";
-  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID || "";
-  const applicationName = process.env.NIAT_APPLICATION_NAME || "NIAT";
+  const bookedSectionId = process.env.BOOKED_CAMPUS_VISIT_SECTION_ID ;
+  const visitedSectionId = process.env.VISITED_CAMPUS_SECTION_ID ;
+  const applicationName = process.env.NIAT_APPLICATION_NAME;
 
   const dataPayload = JSON.stringify({
     user_id: userId,
