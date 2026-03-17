@@ -9,7 +9,7 @@ const getTemplateConfig = () => {
     FIELDS: [
       {
         FIELD_ID: cfg.fieldId,
-        FIELD_VALUE: "Studying 12th/Intermediate 2nd Year",
+        FIELD_VALUE: cfg.fieldValue,
       },
     ],
   };

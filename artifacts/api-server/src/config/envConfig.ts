@@ -14,6 +14,7 @@ export interface NiatConfig {
   templateId: string;
   sectionId: string;
   fieldId: string;
+  fieldValue: string;
   bookedCampusVisitSectionId: string;
   visitedCampusSectionId: string;
   // Shared constants
@@ -53,6 +54,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     templateId: get("TEMPLATE_ID"),
     sectionId: get("SECTION_ID"),
     fieldId: get("FIELD_ID"),
+    fieldValue: get("FIELD_VALUE"),
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
     visitedCampusSectionId: get("VISITED_CAMPUS_SECTION_ID"),
     applicationName: (process.env.NIAT_APPLICATION_NAME || "NIAT_2026").trim(),

@@ -126,7 +126,13 @@ export async function getSectionsCompletion(
   userId: string,
   applicationId: string,
 ) {
-  const { baseUrl, clientKeyDetailsId, bookedCampusVisitSectionId: bookedSectionId, visitedCampusSectionId: visitedSectionId, applicationName } = getConfig();
+  const {
+    baseUrl,
+    clientKeyDetailsId,
+    bookedCampusVisitSectionId: bookedSectionId,
+    visitedCampusSectionId: visitedSectionId,
+    applicationName,
+  } = getConfig();
   const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
 
   const sectionIds = [
