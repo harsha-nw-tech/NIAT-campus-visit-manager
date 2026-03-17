@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,9 +25,19 @@ export default function SalesDashboard() {
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [fieldUpdated, setFieldUpdated] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<{phoneNumber: string}>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<{phoneNumber: string}>({
     resolver: zodResolver(searchSchema)
   });
+
+  const phoneValue = watch("phoneNumber");
+
+  useEffect(() => {
+    if (searchResult) {
+      setSearchResult(null);
+      setCompletionData(null);
+      setFieldUpdated(false);
+    }
+  }, [phoneValue]);
 
   const searchMutation = useSearchUser({
     request: { headers: getHeaders() },
