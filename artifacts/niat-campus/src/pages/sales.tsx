@@ -32,11 +32,9 @@ export default function SalesDashboard() {
   const phoneValue = watch("phoneNumber");
 
   useEffect(() => {
-    if (searchResult) {
-      setSearchResult(null);
-      setCompletionData(null);
-      setFieldUpdated(false);
-    }
+    setSearchResult(null);
+    setCompletionData(null);
+    setFieldUpdated(false);
   }, [phoneValue]);
 
   const searchMutation = useSearchUser({
