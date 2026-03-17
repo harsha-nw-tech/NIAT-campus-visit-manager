@@ -189,15 +189,15 @@ export default function SalesDashboard() {
                   className="rounded-xl p-8 text-center"
                   style={{
                     backgroundColor: "#FFFFFF",
-                    border: "2px dashed #BBF7D0",
+                    border: "2px dashed #FECACA",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                   }}
                 >
                   <div
                     className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ backgroundColor: "#F0FDF4" }}
+                    style={{ backgroundColor: "#FFF1F1" }}
                   >
-                    <UserPlus className="w-7 h-7" style={{ color: "#16A34A" }} />
+                    <UserPlus className="w-7 h-7" style={{ color: "#B3261E" }} />
                   </div>
                   <h3 className="text-lg font-bold mb-2" style={{ color: "#1F2937" }}>
                     New Prospect
@@ -239,7 +239,7 @@ export default function SalesDashboard() {
                   >
                     <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
                       <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: "#1F2937" }}>
-                        <User className="w-4 h-4" style={{ color: "#16A34A" }} />
+                        <User className="w-4 h-4" style={{ color: "#B3261E" }} />
                         Student Details
                       </h3>
                       <Badge variant="success">Existing Lead</Badge>
@@ -278,7 +278,7 @@ export default function SalesDashboard() {
                   >
                     <div className="mb-4 pb-3" style={{ borderBottom: "1px solid #F3F4F6" }}>
                       <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: "#1F2937" }}>
-                        <MapPin className="w-4 h-4" style={{ color: "#16A34A" }} />
+                        <MapPin className="w-4 h-4" style={{ color: "#B3261E" }} />
                         Visit Status
                       </h3>
                     </div>
@@ -293,15 +293,15 @@ export default function SalesDashboard() {
                           <ProgressBar
                             label="Application Progress"
                             value={completionData.bookedCampusVisit}
-                            color="#16A34A"
+                            color="#B3261E"
                           />
                         )}
                         {completionData.completionAvailable && completionData.visitedCampus != null && (
                           <ProgressBar
                             label="Campus Visited"
                             value={completionData.visitedCampus}
-                            color={completionData.visitedCampus >= 100 ? "#16A34A" : "#F59E0B"}
-                            valueColor={completionData.visitedCampus >= 100 ? "#16A34A" : "#B45309"}
+                            color={completionData.visitedCampus >= 100 ? "#B3261E" : "#F59E0B"}
+                            valueColor={completionData.visitedCampus >= 100 ? "#B3261E" : "#B45309"}
                           />
                         )}
                         {!completionData.completionAvailable && (
@@ -319,7 +319,7 @@ export default function SalesDashboard() {
                           {markVisitedMutation.isSuccess ? (
                             <div
                               className="flex items-center gap-2 text-sm font-semibold p-3 rounded-lg justify-center"
-                              style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}
+                              style={{ backgroundColor: "#FFF1F1", color: "#B3261E" }}
                             >
                               <CheckCircle2 className="w-4 h-4" />
                               Campus Visit Recorded
@@ -329,7 +329,7 @@ export default function SalesDashboard() {
                             completionData.visitedCampus >= 100 ? (
                             <div
                               className="flex items-center gap-2 text-sm font-semibold p-3 rounded-lg justify-center"
-                              style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}
+                              style={{ backgroundColor: "#FFF1F1", color: "#B3261E" }}
                             >
                               <CheckCircle2 className="w-4 h-4" />
                               Campus Visit Completed

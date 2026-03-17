@@ -29,8 +29,8 @@
   /* #1F2937 */
   --foreground: 220 26% 14%;
 
-  /* Primary green: #16A34A */
-  --primary: 142 76% 36%;
+  /* Primary red: #B3261E */
+  --primary: 3 71% 41%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 220 14% 93%;
@@ -50,8 +50,8 @@
 
   /* #D1D5DB */
   --border: 220 13% 84%;
-  /* #16A34A */
-  --ring: 142 76% 36%;
+  /* #B3261E */
+  --ring: 3 71% 41%;
 
   /* Card: #FFFFFF */
   --card: 0 0% 100%;
@@ -95,14 +95,14 @@
   }
 
   .text-primary-green {
-    color: #16A34A;
+    color: #B3261E;
   }
 
   .bg-primary-green {
-    background-color: #16A34A;
+    background-color: #B3261E;
   }
 
   .border-primary-green {
-    border-color: #16A34A;
+    border-color: #B3261E;
   }
 }

@@ -14,7 +14,7 @@ export function Layout({ children }: { children: ReactNode }) {
           {/* Brand */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#16A34A" }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#B3261E" }}>
                 <Building2 className="w-4 h-4 text-white" />
               </div>
               <span className="font-display font-bold text-base text-[#1F2937] hidden sm:block">
@@ -27,7 +27,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <Link href="/admin">
                   <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     location === "/admin"
-                      ? "bg-[#F0FDF4] text-[#16A34A]"
+                      ? "bg-[#FFF1F1] text-[#B3261E]"
                       : "text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F9FAFB]"
                   }`}>
                     <ShieldCheck className="w-4 h-4" />
@@ -38,7 +38,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <Link href="/">
                   <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     location === "/"
-                      ? "bg-[#F0FDF4] text-[#16A34A]"
+                      ? "bg-[#FFF1F1] text-[#B3261E]"
                       : "text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F9FAFB]"
                   }`}>
                     <LayoutDashboard className="w-4 h-4" />

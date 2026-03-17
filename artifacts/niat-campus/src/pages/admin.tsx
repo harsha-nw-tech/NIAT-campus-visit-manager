@@ -79,7 +79,7 @@ export default function AdminDashboard() {
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
                   backgroundColor: active ? "#FFFFFF" : "transparent",
-                  color: active ? "#16A34A" : "#6B7280",
+                  color: active ? "#B3261E" : "#6B7280",
                   boxShadow: active ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
                 }}
               >
@@ -145,9 +145,9 @@ function CreateSalesTab({ getHeaders, toast }: any) {
       <div className="text-center mb-8">
         <div
           className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-          style={{ backgroundColor: "#F0FDF4" }}
+          style={{ backgroundColor: "#FFF1F1" }}
         >
-          <Plus className="w-6 h-6" style={{ color: "#16A34A" }} />
+          <Plus className="w-6 h-6" style={{ color: "#B3261E" }} />
         </div>
         <h2 className="text-lg font-bold" style={{ color: "#1F2937" }}>
           New Sales Account
@@ -358,7 +358,7 @@ function CredentialsTab({ getHeaders, toast }: any) {
               style={{ border: "1px solid #E5E7EB" }}
             >
               {editingId === u.id ? (
-                <div className="p-4 space-y-3" style={{ backgroundColor: "#F0FDF4" }}>
+                <div className="p-4 space-y-3" style={{ backgroundColor: "#FFF1F1" }}>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant={u.role === "admin" ? "default" : "success"}>{u.role}</Badge>
                     <span className="text-xs" style={{ color: "#6B7280" }}>

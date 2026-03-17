@@ -13,7 +13,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", isLoading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary:   "bg-[#16A34A] hover:bg-[#15803D] text-white shadow-sm border border-[#16A34A] hover:border-[#15803D]",
+      primary:   "bg-[#B3261E] hover:bg-[#9B1B14] text-white shadow-sm border border-[#B3261E] hover:border-[#9B1B14]",
       secondary: "bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] border border-[#E5E7EB]",
       outline:   "bg-white hover:bg-[#F9FAFB] text-[#1F2937] border border-[#D1D5DB] hover:border-[#9CA3AF]",
       ghost:     "bg-transparent hover:bg-[#F3F4F6] text-[#6B7280] border border-transparent",
@@ -32,7 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isLoading || disabled}
         className={cn(
-          "inline-flex items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16A34A] focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+          "inline-flex items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B3261E] focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
           variants[variant],
           sizes[size],
           className
@@ -58,7 +58,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={cn(
-          "flex h-10 w-full rounded-lg border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] transition-colors focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#9CA3AF] hover:border-[#9CA3AF]",
+          "flex h-10 w-full rounded-lg border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] transition-colors focus:outline-none focus:border-[#B3261E] focus:ring-2 focus:ring-[#B3261E]/20 disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#9CA3AF] hover:border-[#9CA3AF]",
           error && "border-red-500 focus:border-red-500 focus:ring-red-500/20",
           className
         )}
@@ -90,7 +90,7 @@ export function Badge({
 }) {
   const variants = {
     default: "bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]",
-    success: "bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]",
+    success: "bg-[#FFF1F1] text-[#B3261E] border-[#FECACA]",
     warning: "bg-amber-50 text-amber-700 border-amber-200",
     error:   "bg-red-50 text-red-700 border-red-200",
   };
