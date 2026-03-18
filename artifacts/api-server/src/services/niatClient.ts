@@ -153,7 +153,7 @@ export async function getSectionsCompletion(
     "sections:",
     sectionIds,
   );
-
+  console.log(dataPayload);
   const res = await fetch(
     `${baseUrl}/api/nw_application/user/application/sections_completion/get/v1/`,
     {
