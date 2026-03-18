@@ -21,6 +21,12 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
+    const {
+      bookedCampusVisitSectionId,
+      visitedCampusSectionId,
+      personalDetailsSectionId,
+    } = getNiatConfig();
+
     let bookedCampusVisit: number | null = null;
     let visitedCampus: number | null = null;
     let personalDetails: number | null = null;
@@ -29,9 +35,6 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
     try {
       const data = await getSectionsCompletion(userId, applicationId);
       console.log("Get completion raw response:", JSON.stringify(data));
-
-      const { bookedCampusVisitSectionId: bookedSectionId, visitedCampusSectionId: visitedSectionId } = getNiatConfig();
-      const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
 
       const sections = Array.isArray(data?.data)
         ? data.data
@@ -47,9 +50,9 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
         return sections?.[id]?.completion ?? sections?.[id] ?? 0;
       };
 
-      bookedCampusVisit = findCompletion(bookedSectionId);
-      visitedCampus = findCompletion(visitedSectionId);
-      personalDetails = findCompletion(personalSectionId);
+      bookedCampusVisit = findCompletion(bookedCampusVisitSectionId);
+      visitedCampus = findCompletion(visitedCampusSectionId);
+      personalDetails = findCompletion(personalDetailsSectionId);
       completionAvailable = true;
     } catch (completionErr: any) {
       console.warn(

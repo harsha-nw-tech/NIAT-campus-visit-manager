@@ -17,8 +17,7 @@ export interface NiatConfig {
   fieldValue: string;
   bookedCampusVisitSectionId: string;
   visitedCampusSectionId: string;
-  personalDetailsSectionId: string
-  // Shared constants
+  personalDetailsSectionId: string;
   applicationName: string;
   countryCode: string;
   identity: string;
@@ -43,25 +42,24 @@ const APPLICATION_URLS: Record<Environment, string> = {
 function getEnvConfig(env: Environment): NiatConfig {
   const prefix = env.toUpperCase();
 
-  // For each key, prefer prefixed (e.g. GAMMA_TEMPLATE_ID) then fall back to unprefixed
-  const get = (key: string) =>
-    (process.env[`${prefix}_${key}`] || process.env[key] || "").trim();
+  const get = (key: string, fallback = "") =>
+    (process.env[`${prefix}_${key}`] || process.env[key] || fallback).trim();
 
   return {
-    apiKey: get("NIAT_API_KEY"),
-    apiBaseUrl: get("NIAT_API_BASE_URL"),
-    applicationUrl: APPLICATION_URLS[env],
-    clientKeyDetailsId: get("COMMON_DATA_CLIENT_KEY_DETAILS_ID"),
-    templateId: get("TEMPLATE_ID"),
-    sectionId: get("SECTION_ID"),
-    fieldId: get("FIELD_ID"),
-    fieldValue: get("FIELD_VALUE"),
+    apiKey:                    get("NIAT_API_KEY"),
+    apiBaseUrl:                get("NIAT_API_BASE_URL"),
+    applicationUrl:            APPLICATION_URLS[env],
+    clientKeyDetailsId:        get("COMMON_DATA_CLIENT_KEY_DETAILS_ID"),
+    templateId:                get("TEMPLATE_ID"),
+    sectionId:                 get("SECTION_ID"),
+    fieldId:                   get("FIELD_ID"),
+    fieldValue:                get("FIELD_VALUE"),
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
-    visitedCampusSectionId: get("NIAT_VISITED_CAMPUS_SECTION_ID"),
-    personalDetailsSectionId: get("PERSONAL_DETAILS_SECTION_ID"),
-    applicationName: (process.env.NIAT_APPLICATION_NAME || "NIAT_2026").trim(),
-    countryCode: "+91",
-    identity: (process.env.NIAT_IDENTITY || "STUDENT").trim(),
+    visitedCampusSectionId:    get("VISITED_CAMPUS_SECTION_ID"),
+    personalDetailsSectionId:  get("PERSONAL_DETAILS_SECTION_ID"),
+    applicationName:           get("NIAT_APPLICATION_NAME", "NIAT_2026"),
+    countryCode:               get("COUNTRY_CODE", "+91"),
+    identity:                  get("NIAT_IDENTITY", "STUDENT"),
   };
 }
 
