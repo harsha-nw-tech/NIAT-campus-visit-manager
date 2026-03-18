@@ -7,7 +7,7 @@
  */
 
 export interface GetCompletionResponse {
-  bookedCampusVisit: number | null;
-  visitedCampus: number | null;
+  bookedCampusVisit?: number | null;
+  officeVisit?: number | null;
   completionAvailable: boolean;
 }

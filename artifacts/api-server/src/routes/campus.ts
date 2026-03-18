@@ -19,10 +19,10 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    const { bookedCampusVisitSectionId, personalDetailsSectionId } = getNiatConfig();
+    const { bookedCampusVisitSectionId, officeVisitSectionId } = getNiatConfig();
 
     let bookedCampusVisit: number | null = null;
-    let personalDetails: number | null = null;
+    let officeVisit: number | null = null;
     let completionAvailable = false;
 
     try {
@@ -42,13 +42,13 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
       };
 
       bookedCampusVisit = findCompletion(bookedCampusVisitSectionId);
-      personalDetails   = findCompletion(personalDetailsSectionId);
+      officeVisit       = findCompletion(officeVisitSectionId);
       completionAvailable = true;
     } catch (completionErr: any) {
       console.warn("Could not fetch completion data:", completionErr.message);
     }
 
-    res.json({ bookedCampusVisit, personalDetails, completionAvailable });
+    res.json({ bookedCampusVisit, officeVisit, completionAvailable });
   } catch (err: any) {
     console.error("Get completion error:", err);
     res.status(400).json({ error: "Failed", message: err.message });

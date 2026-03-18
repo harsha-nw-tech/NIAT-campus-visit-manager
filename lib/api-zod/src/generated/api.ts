@@ -60,8 +60,9 @@ export const GetCompletionBody = zod.object({
 });
 
 export const GetCompletionResponse = zod.object({
-  bookedCampusVisit: zod.number(),
-  visitedCampus: zod.number(),
+  bookedCampusVisit: zod.number().nullish(),
+  officeVisit: zod.number().nullish(),
+  completionAvailable: zod.boolean(),
 });
 
 /**
@@ -93,6 +94,19 @@ export const GenerateLinkResponse = zod.object({
 });
 
 /**
+ * @summary Update user field for new user direct visit flow
+ */
+export const UpdateUserFieldBody = zod.object({
+  userId: zod.string(),
+  applicationId: zod.string(),
+});
+
+export const UpdateUserFieldResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
  * @summary Create a sales user (admin only)
  */
 export const CreateSalesBody = zod.object({
@@ -116,6 +130,34 @@ export const GetSalesUsersResponse = zod.object({
       role: zod.enum(["admin", "sales"]),
     }),
   ),
+});
+
+/**
+ * @summary Get all users for credential management (admin only)
+ */
+export const GetAllUsersResponse = zod.object({
+  users: zod.array(
+    zod.object({
+      id: zod.number(),
+      phoneNumber: zod.string(),
+      role: zod.string(),
+      plainPassword: zod.string().nullish(),
+    }),
+  ),
+});
+
+/**
+ * @summary Change credentials for a user (admin only)
+ */
+export const ChangeCredentialsBody = zod.object({
+  id: zod.number(),
+  phoneNumber: zod.string(),
+  password: zod.string(),
+});
+
+export const ChangeCredentialsResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
 });
 
 /**

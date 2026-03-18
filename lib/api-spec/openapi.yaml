@@ -172,6 +172,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /update-user-field:
+    post:
+      operationId: updateUserField
+      tags: [campus]
+      summary: Update user field for new user direct visit flow
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserFieldRequest"
+      responses:
+        "200":
+          description: Field updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /admin/create-sales:
     post:
       operationId: createSales
@@ -221,6 +248,54 @@ paths:
                 $ref: "#/components/schemas/SalesUsersResponse"
         "403":
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/all-users:
+    get:
+      operationId: getAllUsers
+      tags: [admin]
+      summary: Get all users for credential management (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllUsersResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/change-credentials:
+    post:
+      operationId: changeCredentials
+      tags: [admin]
+      summary: Change credentials for a user (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeCredentialsRequest"
+      responses:
+        "200":
+          description: Credentials updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
           content:
             application/json:
               schema:
@@ -376,11 +451,14 @@ components:
       properties:
         bookedCampusVisit:
           type: number
-        visitedCampus:
+          nullable: true
+        officeVisit:
           type: number
+          nullable: true
+        completionAvailable:
+          type: boolean
       required:
-        - bookedCampusVisit
-        - visitedCampus
+        - completionAvailable
 
     MarkVisitedRequest:
       type: object
@@ -420,6 +498,17 @@ components:
       required:
         - redirectUrl
         - success
+
+    UpdateUserFieldRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        applicationId:
+          type: string
+      required:
+        - userId
+        - applicationId
 
     CreateSalesRequest:
       type: object
@@ -487,3 +576,44 @@ components:
         - total
         - page
         - limit
+
+    UserRecord:
+      type: object
+      properties:
+        id:
+          type: number
+        phoneNumber:
+          type: string
+        role:
+          type: string
+        plainPassword:
+          type: string
+          nullable: true
+      required:
+        - id
+        - phoneNumber
+        - role
+
+    AllUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRecord"
+      required:
+        - users
+
+    ChangeCredentialsRequest:
+      type: object
+      properties:
+        id:
+          type: number
+        phoneNumber:
+          type: string
+        password:
+          type: string
+      required:
+        - id
+        - phoneNumber
+        - password

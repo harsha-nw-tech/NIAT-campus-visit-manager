@@ -26,7 +26,7 @@ export interface NiatConfig {
 
   // Section completion IDs
   bookedCampusVisitSectionId: string;
-  personalDetailsSectionId: string;
+  officeVisitSectionId: string;
 
   // Shared
   applicationName: string;
@@ -81,7 +81,7 @@ function getEnvConfig(env: Environment): NiatConfig {
 
     // Section completion tracking
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
-    personalDetailsSectionId:   get("PERSONAL_DETAILS_SECTION_ID"),
+    officeVisitSectionId:       get("NIAT_OFFICE_VISIT_SECTION_ENTITY_ID"),
 
     // Shared
     applicationName:          get("NIAT_APPLICATION_NAME", "NIAT_2026"),

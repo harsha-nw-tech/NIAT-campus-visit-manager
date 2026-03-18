@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./allUsersResponse";
 export * from "./auditLog";
 export * from "./auditLogActionType";
+export * from "./changeCredentialsRequest";
 export * from "./createSalesRequest";
 export * from "./errorResponse";
 export * from "./generateLinkRequest";
@@ -25,5 +27,7 @@ export * from "./searchUserRequest";
 export * from "./searchUserResponse";
 export * from "./searchUserResponseStudentInfo";
 export * from "./successResponse";
+export * from "./updateUserFieldRequest";
 export * from "./userInfo";
 export * from "./userInfoRole";
+export * from "./userRecord";

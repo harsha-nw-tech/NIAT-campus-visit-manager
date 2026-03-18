@@ -5,10 +5,8 @@
  * NIAT Campus Visit Manager API
  * OpenAPI spec version: 0.1.0
  */
+import type { UserRecord } from "./userRecord";
 
-export type SearchUserResponseStudentInfo = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  [key: string]: unknown;
-};
+export interface AllUsersResponse {
+  users: UserRecord[];
+}

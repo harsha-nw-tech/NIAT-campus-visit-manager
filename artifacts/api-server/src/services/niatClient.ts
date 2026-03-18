@@ -11,7 +11,7 @@ const getConfig = () => {
     countryCode: cfg.countryCode,
     applicationUrl: cfg.applicationUrl,
     bookedCampusVisitSectionId: cfg.bookedCampusVisitSectionId,
-    personalDetailsSectionId: cfg.personalDetailsSectionId,
+    officeVisitSectionId: cfg.officeVisitSectionId,
   };
 };
 
@@ -28,10 +28,7 @@ export async function searchUserByPhone(phoneNumber: string) {
     country_code: countryCode,
     application_details: {
       application_name_enum: applicationName,
-      identity: identity,
-      metadata: JSON.stringify({
-        application_type: "OFFLINE_EXAM_SUBMISSION",
-      }),
+      identity: identity
     },
   };
 
@@ -132,13 +129,13 @@ export async function getSectionsCompletion(
     baseUrl,
     clientKeyDetailsId,
     bookedCampusVisitSectionId,
-    personalDetailsSectionId,
+    officeVisitSectionId,
     applicationName,
   } = getConfig();
 
   const allSectionIds: Record<string, string> = {
     BOOKED_CAMPUS_VISIT_SECTION_ID: bookedCampusVisitSectionId,
-    PERSONAL_DETAILS_SECTION_ID: personalDetailsSectionId,
+    NIAT_OFFICE_VISIT_SECTION_ENTITY_ID: officeVisitSectionId,
   };
 
   for (const [key, val] of Object.entries(allSectionIds)) {

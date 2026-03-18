@@ -47,10 +47,9 @@ export interface SearchUserRequest {
 }
 
 export type SearchUserResponseStudentInfo = {
-  name?: string | null;
-  email?: string | null;
+  name?: string;
+  email?: string;
   phone?: string;
-  language?: string | null;
   [key: string]: unknown;
 };
 
@@ -67,9 +66,8 @@ export interface GetCompletionRequest {
 }
 
 export interface GetCompletionResponse {
-  bookedCampusVisit: number | null;
-  visitedCampus: number | null;
-  personalDetails: number | null;
+  bookedCampusVisit?: number | null;
+  officeVisit?: number | null;
   completionAvailable: boolean;
 }
 
@@ -88,6 +86,11 @@ export interface GenerateLinkRequest {
 export interface GenerateLinkResponse {
   redirectUrl: string;
   success: boolean;
+}
+
+export interface UpdateUserFieldRequest {
+  userId: string;
+  applicationId: string;
 }
 
 export interface CreateSalesRequest {
@@ -123,6 +126,23 @@ export interface LogsResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface UserRecord {
+  id: number;
+  phoneNumber: string;
+  role: string;
+  plainPassword?: string | null;
+}
+
+export interface AllUsersResponse {
+  users: UserRecord[];
+}
+
+export interface ChangeCredentialsRequest {
+  id: number;
+  phoneNumber: string;
+  password: string;
 }
 
 export type GetLogsParams = {

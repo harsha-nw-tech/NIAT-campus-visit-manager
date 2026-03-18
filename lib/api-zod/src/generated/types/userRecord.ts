@@ -6,9 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type SearchUserResponseStudentInfo = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  [key: string]: unknown;
-};
+export interface UserRecord {
+  id: number;
+  phoneNumber: string;
+  role: string;
+  plainPassword?: string | null;
+}

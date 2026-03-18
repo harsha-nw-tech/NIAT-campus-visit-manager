@@ -16,6 +16,7 @@ import {
   Briefcase,
   Loader2,
   Globe,
+  Share2,
 } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
@@ -28,7 +29,7 @@ import {
   SearchUserResponse,
   GetCompletionResponse,
 } from "@workspace/api-client-react";
-import { Button, Input, Badge, Modal } from "@/components/ui";
+import { Button, Input, Badge } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 
 const searchSchema = z.object({
@@ -42,7 +43,6 @@ export default function SalesDashboard() {
   const [searchResult, setSearchResult] = useState<SearchUserResponse | null>(null);
   const [completionData, setCompletionData] = useState<GetCompletionResponse | null>(null);
   const [searchedPhone, setSearchedPhone] = useState("");
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState("");
 
   const {
@@ -56,6 +56,7 @@ export default function SalesDashboard() {
   useEffect(() => {
     setSearchResult(null);
     setCompletionData(null);
+    setGeneratedUrl("");
   }, [phoneValue]);
 
   const searchMutation = useSearchUser({
@@ -65,6 +66,7 @@ export default function SalesDashboard() {
         setSearchResult(data);
         setSearchedPhone(variables.data.phoneNumber);
         setCompletionData(null);
+        setGeneratedUrl("");
         if (!data.isNewUser && data.userId && data.applicationId) {
           getCompletionMutation.mutate({
             data: { userId: data.userId, applicationId: data.applicationId },
@@ -89,7 +91,6 @@ export default function SalesDashboard() {
     mutation: {
       onSuccess: (data) => {
         setGeneratedUrl(data.redirectUrl ?? "");
-        setIsLinkModalOpen(true);
       },
       onError: (err: any) =>
         toast({ title: "Failed to generate link", description: err.message || "Please try again.", variant: "destructive" }),
@@ -117,7 +118,7 @@ export default function SalesDashboard() {
     request: { headers: getHeaders() },
     mutation: {
       onSuccess: () => {
-        toast({ title: "Success", description: "Campus marked as visited!" });
+        toast({ title: "Success", description: "Campus visit confirmed!" });
       },
       onError: (err: any) =>
         toast({ title: "Update Failed", description: err.message, variant: "destructive" }),
@@ -133,10 +134,26 @@ export default function SalesDashboard() {
     });
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedUrl);
+  const copyToClipboard = (url: string) => {
+    navigator.clipboard.writeText(url);
     toast({ title: "Copied!", description: "Link copied to clipboard." });
   };
+
+  const openWhatsApp = (url: string) => {
+    window.open(
+      `https://wa.me/${searchedPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+        `Here is your campus visit link: ${url}`
+      )}`,
+      "_blank"
+    );
+  };
+
+  // Determine "Confirm Campus Visit" button visibility:
+  // Show when booked=100% AND office visit NOT yet 100%
+  const bookedComplete = (completionData?.bookedCampusVisit ?? 0) >= 100;
+  const officeComplete = (completionData?.officeVisit ?? 0) >= 100;
+  const showConfirmButton = bookedComplete && !officeComplete;
+  const alreadyVisited = bookedComplete && officeComplete;
 
   return (
     <Layout>
@@ -204,25 +221,52 @@ export default function SalesDashboard() {
                   <p className="text-sm mb-6" style={{ color: "#6B7280" }}>
                     This number isn't registered yet. Click below to register the campus visit and get a direct link.
                   </p>
-                  <Button
-                    size="lg"
-                    onClick={() => {
-                      if (!searchResult.userId || !searchResult.applicationId) return;
-                      updateFieldMutation.mutate({
-                        data: { userId: searchResult.userId, applicationId: searchResult.applicationId },
-                      });
-                    }}
-                    disabled={updateFieldMutation.isPending || linkMutation.isPending}
-                  >
-                    {updateFieldMutation.isPending || linkMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        {updateFieldMutation.isPending ? "Registering visit…" : "Generating link…"}
-                      </>
-                    ) : (
-                      <><LinkIcon className="w-4 h-4 mr-2" />Mark Direct Visit</>
-                    )}
-                  </Button>
+
+                  {generatedUrl ? (
+                    /* Inline URL display after link generation */
+                    <div className="space-y-3">
+                      <div
+                        className="p-3 rounded-lg text-xs font-mono break-all text-left select-all"
+                        style={{ backgroundColor: "#F9FAFB", border: "1px solid #E5E7EB", color: "#374151" }}
+                      >
+                        {generatedUrl}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button variant="outline" onClick={() => copyToClipboard(generatedUrl)}>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy Link
+                        </Button>
+                        <Button
+                          style={{ backgroundColor: "#25D366", borderColor: "#25D366" }}
+                          className="text-white hover:opacity-90"
+                          onClick={() => openWhatsApp(generatedUrl)}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Share URL
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      size="lg"
+                      onClick={() => {
+                        if (!searchResult.userId || !searchResult.applicationId) return;
+                        updateFieldMutation.mutate({
+                          data: { userId: searchResult.userId, applicationId: searchResult.applicationId },
+                        });
+                      }}
+                      disabled={updateFieldMutation.isPending || linkMutation.isPending}
+                    >
+                      {updateFieldMutation.isPending || linkMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {updateFieldMutation.isPending ? "Registering visit…" : "Generating link…"}
+                        </>
+                      ) : (
+                        <><LinkIcon className="w-4 h-4 mr-2" />Mark Direct Visit</>
+                      )}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 /* Existing user — two-column layout */
@@ -288,20 +332,20 @@ export default function SalesDashboard() {
                       </div>
                     ) : completionData ? (
                       <div className="space-y-5">
-                        {completionData.completionAvailable && completionData.personalDetails != null && (
-                          <ProgressBar
-                            label="Personal Details"
-                            value={completionData.personalDetails}
-                            color={completionData.personalDetails >= 100 ? "#B3261E" : "#F59E0B"}
-                            valueColor={completionData.personalDetails >= 100 ? "#B3261E" : "#B45309"}
-                          />
-                        )}
                         {completionData.completionAvailable && completionData.bookedCampusVisit != null && (
                           <ProgressBar
                             label="Campus Visit Booked"
                             value={completionData.bookedCampusVisit}
                             color={completionData.bookedCampusVisit >= 100 ? "#B3261E" : "#F59E0B"}
                             valueColor={completionData.bookedCampusVisit >= 100 ? "#B3261E" : "#B45309"}
+                          />
+                        )}
+                        {completionData.completionAvailable && completionData.officeVisit != null && (
+                          <ProgressBar
+                            label="Office Visit"
+                            value={completionData.officeVisit}
+                            color={completionData.officeVisit >= 100 ? "#B3261E" : "#F59E0B"}
+                            valueColor={completionData.officeVisit >= 100 ? "#B3261E" : "#B45309"}
                           />
                         )}
                         {!completionData.completionAvailable && (
@@ -314,11 +358,10 @@ export default function SalesDashboard() {
                           </div>
                         )}
 
-                        {/* Action — only shown when campus visit is booked (100%) */}
-                        {completionData.bookedCampusVisit != null &&
-                          completionData.bookedCampusVisit >= 100 && (
+                        {/* Action button — conditional on visit state */}
+                        {completionData.completionAvailable && bookedComplete && (
                           <div className="pt-2" style={{ borderTop: "1px solid #F3F4F6" }}>
-                            {markVisitedMutation.isSuccess ? (
+                            {markVisitedMutation.isSuccess || alreadyVisited ? (
                               <div
                                 className="flex items-center gap-2 text-sm font-semibold p-3 rounded-lg justify-center"
                                 style={{ backgroundColor: "#FFF1F1", color: "#B3261E" }}
@@ -326,7 +369,7 @@ export default function SalesDashboard() {
                                 <CheckCircle2 className="w-4 h-4" />
                                 Campus Visit Recorded
                               </div>
-                            ) : (
+                            ) : showConfirmButton ? (
                               <Button
                                 onClick={handleMarkVisited}
                                 isLoading={markVisitedMutation.isPending}
@@ -335,7 +378,7 @@ export default function SalesDashboard() {
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
                                 Confirm Campus Visit
                               </Button>
-                            )}
+                            ) : null}
                           </div>
                         )}
                       </div>
@@ -347,39 +390,6 @@ export default function SalesDashboard() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Link modal */}
-      <Modal isOpen={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} title="Visit Link Generated">
-        <div className="space-y-5">
-          <div
-            className="p-3 rounded-lg text-xs font-mono break-all select-all"
-            style={{ backgroundColor: "#F9FAFB", border: "1px solid #E5E7EB", color: "#374151" }}
-          >
-            {generatedUrl}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" onClick={copyToClipboard}>
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Link
-            </Button>
-            <Button
-              style={{ backgroundColor: "#25D366", borderColor: "#25D366" }}
-              className="text-white hover:opacity-90"
-              onClick={() =>
-                window.open(
-                  `https://wa.me/${searchedPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                    `Here is your campus visit link: ${generatedUrl}`
-                  )}`,
-                  "_blank"
-                )
-              }
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              WhatsApp
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </Layout>
   );
 }
