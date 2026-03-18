@@ -296,12 +296,12 @@ export default function SalesDashboard() {
                             valueColor={completionData.personalDetails >= 100 ? "#B3261E" : "#B45309"}
                           />
                         )}
-                        {completionData.completionAvailable && completionData.visitedCampus != null && (
+                        {completionData.completionAvailable && completionData.bookedCampusVisit != null && (
                           <ProgressBar
-                            label="Campus Visited"
-                            value={completionData.visitedCampus}
-                            color={completionData.visitedCampus >= 100 ? "#B3261E" : "#F59E0B"}
-                            valueColor={completionData.visitedCampus >= 100 ? "#B3261E" : "#B45309"}
+                            label="Campus Visit Booked"
+                            value={completionData.bookedCampusVisit}
+                            color={completionData.bookedCampusVisit >= 100 ? "#B3261E" : "#F59E0B"}
+                            valueColor={completionData.bookedCampusVisit >= 100 ? "#B3261E" : "#B45309"}
                           />
                         )}
                         {!completionData.completionAvailable && (
@@ -310,41 +310,34 @@ export default function SalesDashboard() {
                             style={{ backgroundColor: "#F9FAFB", color: "#6B7280" }}
                           >
                             <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#9CA3AF" }} />
-                            <span>Completion data not available. Use the button below to record the campus visit.</span>
+                            <span>Completion data not available.</span>
                           </div>
                         )}
 
-                        {/* Action */}
-                        <div className="pt-2" style={{ borderTop: "1px solid #F3F4F6" }}>
-                          {markVisitedMutation.isSuccess ? (
-                            <div
-                              className="flex items-center gap-2 text-sm font-semibold p-3 rounded-lg justify-center"
-                              style={{ backgroundColor: "#FFF1F1", color: "#B3261E" }}
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              Campus Visit Recorded
-                            </div>
-                          ) : completionData.completionAvailable &&
-                            completionData.visitedCampus != null &&
-                            completionData.visitedCampus >= 100 ? (
-                            <div
-                              className="flex items-center gap-2 text-sm font-semibold p-3 rounded-lg justify-center"
-                              style={{ backgroundColor: "#FFF1F1", color: "#B3261E" }}
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              Campus Visit Completed
-                            </div>
-                          ) : (
-                            <Button
-                              onClick={handleMarkVisited}
-                              isLoading={markVisitedMutation.isPending}
-                              className="w-full"
-                            >
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Confirm Campus Visit
-                            </Button>
-                          )}
-                        </div>
+                        {/* Action — only shown when campus visit is booked (100%) */}
+                        {completionData.bookedCampusVisit != null &&
+                          completionData.bookedCampusVisit >= 100 && (
+                          <div className="pt-2" style={{ borderTop: "1px solid #F3F4F6" }}>
+                            {markVisitedMutation.isSuccess ? (
+                              <div
+                                className="flex items-center gap-2 text-sm font-semibold p-3 rounded-lg justify-center"
+                                style={{ backgroundColor: "#FFF1F1", color: "#B3261E" }}
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                Campus Visit Recorded
+                              </div>
+                            ) : (
+                              <Button
+                                onClick={handleMarkVisited}
+                                isLoading={markVisitedMutation.isPending}
+                                className="w-full"
+                              >
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                Confirm Campus Visit
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ) : null}
                   </div>

@@ -10,25 +10,18 @@ import { db, auditLogsTable } from "@workspace/db";
 
 const router = Router();
 
+// GET completion percentages for a user's sections
 router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { applicationId, userId } = req.body;
     if (!applicationId || !userId) {
-      res.status(400).json({
-        error: "Bad Request",
-        message: "applicationId and userId are required",
-      });
+      res.status(400).json({ error: "Bad Request", message: "applicationId and userId are required" });
       return;
     }
 
-    const {
-      bookedCampusVisitSectionId,
-      visitedCampusSectionId,
-      personalDetailsSectionId,
-    } = getNiatConfig();
+    const { bookedCampusVisitSectionId, personalDetailsSectionId } = getNiatConfig();
 
     let bookedCampusVisit: number | null = null;
-    let visitedCampus: number | null = null;
     let personalDetails: number | null = null;
     let completionAvailable = false;
 
@@ -36,43 +29,33 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
       const data = await getSectionsCompletion(userId, applicationId);
       console.log("Get completion raw response:", JSON.stringify(data));
 
-      const sections = Array.isArray(data?.data)
-        ? data.data
-        : (data?.data ?? data?.sections ?? data ?? {});
+      const sections = Array.isArray(data?.section_details)
+        ? data.section_details
+        : (data?.data ?? data?.sections ?? []);
 
-      const findCompletion = (id: string) => {
-        if (Array.isArray(sections)) {
-          const entry = sections.find(
-            (s: any) => s.section_entity_config_id === id || s.id === id,
-          );
-          return entry?.completion ?? entry?.completion_value ?? 0;
-        }
-        return sections?.[id]?.completion ?? sections?.[id] ?? 0;
+      const findCompletion = (id: string): number => {
+        if (!id) return 0;
+        const entry = Array.isArray(sections)
+          ? sections.find((s: any) => s.section_entity_config_id === id || s.id === id)
+          : null;
+        return entry?.completion_percentage ?? entry?.completion ?? entry?.completion_value ?? 0;
       };
 
       bookedCampusVisit = findCompletion(bookedCampusVisitSectionId);
-      visitedCampus = findCompletion(visitedCampusSectionId);
-      personalDetails = findCompletion(personalDetailsSectionId);
+      personalDetails   = findCompletion(personalDetailsSectionId);
       completionAvailable = true;
     } catch (completionErr: any) {
-      console.warn(
-        "Could not fetch completion data (requires user auth):",
-        completionErr.message,
-      );
+      console.warn("Could not fetch completion data:", completionErr.message);
     }
 
-    res.json({
-      bookedCampusVisit,
-      visitedCampus,
-      personalDetails,
-      completionAvailable,
-    });
+    res.json({ bookedCampusVisit, personalDetails, completionAvailable });
   } catch (err: any) {
     console.error("Get completion error:", err);
     res.status(400).json({ error: "Failed", message: err.message });
   }
 });
 
+// EXISTING USER: Mark campus as visited (updates field with existing user config)
 router.post(
   "/mark-visited",
   requireAuth,
@@ -88,11 +71,9 @@ router.post(
         return;
       }
 
-      const { existingUserFieldValue } = getNiatConfig();
-
       let fieldUpdated = false;
       try {
-        await updateTemplate(userId, applicationId, existingUserFieldValue);
+        await updateTemplate(userId, applicationId, false);
         fieldUpdated = true;
         console.log(`[mark-visited] Field updated for userId: ${userId}`);
       } catch (templateErr: any) {
@@ -108,11 +89,7 @@ router.post(
         phoneNumber,
       });
 
-      res.json({
-        success: true,
-        message: "Campus visit marked successfully",
-        fieldUpdated,
-      });
+      res.json({ success: true, message: "Campus visit marked successfully", fieldUpdated });
     } catch (err: any) {
       console.error("Mark visited error:", err);
       res.status(400).json({ error: "Failed", message: err.message });
@@ -120,6 +97,7 @@ router.post(
   },
 );
 
+// NEW USER: Update field before generating direct link
 router.post("/update-user-field", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { userId, applicationId } = req.body;
@@ -131,7 +109,7 @@ router.post("/update-user-field", requireAuth, async (req: AuthRequest, res) => 
     console.log(`[update-user-field] userId: ${userId} applicationId: ${applicationId}`);
     let templateUpdated = false;
     try {
-      await updateTemplate(userId, applicationId);
+      await updateTemplate(userId, applicationId, true);
       templateUpdated = true;
       console.log(`[update-user-field] Template updated for userId: ${userId}`);
     } catch (templateErr: any) {
@@ -145,6 +123,7 @@ router.post("/update-user-field", requireAuth, async (req: AuthRequest, res) => 
   }
 });
 
+// Generate direct visit link
 router.post("/generate-link", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { userId, applicationId, phoneNumber } = req.body;

@@ -11,7 +11,6 @@ const getConfig = () => {
     countryCode: cfg.countryCode,
     applicationUrl: cfg.applicationUrl,
     bookedCampusVisitSectionId: cfg.bookedCampusVisitSectionId,
-    visitedCampusSectionId: cfg.visitedCampusSectionId,
     personalDetailsSectionId: cfg.personalDetailsSectionId,
   };
 };
@@ -133,14 +132,12 @@ export async function getSectionsCompletion(
     baseUrl,
     clientKeyDetailsId,
     bookedCampusVisitSectionId,
-    visitedCampusSectionId,
     personalDetailsSectionId,
     applicationName,
   } = getConfig();
 
   const allSectionIds: Record<string, string> = {
     BOOKED_CAMPUS_VISIT_SECTION_ID: bookedCampusVisitSectionId,
-    VISITED_CAMPUS_SECTION_ID: visitedCampusSectionId,
     PERSONAL_DETAILS_SECTION_ID: personalDetailsSectionId,
   };
 
