@@ -134,7 +134,7 @@ export async function getSectionsCompletion(
   } = getConfig();
 
   const allSectionIds: Record<string, string> = {
-    BOOKED_CAMPUS_VISIT_SECTION_ID: bookedCampusVisitSectionId,
+    BOOKED_CAMPUS_VISIT_SECTION_ENTITY_ID: bookedCampusVisitSectionId,
     NIAT_OFFICE_VISIT_SECTION_ENTITY_ID: officeVisitSectionId,
   };
 

@@ -142,7 +142,7 @@ export default function SalesDashboard() {
   const openWhatsApp = (url: string) => {
     window.open(
       `https://wa.me/${searchedPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
-        `Here is your campus visit link: ${url}`
+        `Here is your Application link: ${url}`
       )}`,
       "_blank"
     );
@@ -216,7 +216,7 @@ export default function SalesDashboard() {
                     <UserPlus className="w-7 h-7" style={{ color: "#B3261E" }} />
                   </div>
                   <h3 className="text-lg font-bold mb-2" style={{ color: "#1F2937" }}>
-                    New Prospect
+                    New User
                   </h3>
                   <p className="text-sm mb-6" style={{ color: "#6B7280" }}>
                     This number isn't registered yet. Click below to register the campus visit and get a direct link.

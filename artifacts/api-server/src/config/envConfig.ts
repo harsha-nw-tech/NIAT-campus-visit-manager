@@ -62,7 +62,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     get(specificKey) || get(sharedKey);
 
   return {
-    apiKey:                   get("NIAT_API_KEY"),
+    apiKey:                   get("NIAT_X_API_KEY"),
     apiBaseUrl:               get("NIAT_API_BASE_URL"),
     applicationUrl:           APPLICATION_URLS[env],
     clientKeyDetailsId:       get("COMMON_DATA_CLIENT_KEY_DETAILS_ID"),
@@ -80,7 +80,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     existingUserFieldValue:   get("EXISTING_USER_FIELD_VALUE"),
 
     // Section completion tracking
-    bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
+    bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ENTITY_ID"),
     officeVisitSectionId:       get("NIAT_OFFICE_VISIT_SECTION_ENTITY_ID"),
 
     // Shared
