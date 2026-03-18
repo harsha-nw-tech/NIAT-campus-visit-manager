@@ -17,6 +17,7 @@ export interface NiatConfig {
   fieldValue: string;
   bookedCampusVisitSectionId: string;
   visitedCampusSectionId: string;
+  personalDetailsSectionId: string
   // Shared constants
   applicationName: string;
   countryCode: string;
@@ -57,6 +58,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     fieldValue: get("FIELD_VALUE"),
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
     visitedCampusSectionId: get("NIAT_VISITED_CAMPUS_SECTION_ID"),
+    personalDetailsSectionId: get("PERSONAL_DETAILS_SECTION_ID"),
     applicationName: (process.env.NIAT_APPLICATION_NAME || "NIAT_2026").trim(),
     countryCode: "+91",
     identity: (process.env.NIAT_IDENTITY || "STUDENT").trim(),

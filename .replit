@@ -30,6 +30,7 @@ timeoutMs = 20000
 [userenv.shared]
 GAMMA_NIAT_API_BASE_URL = "https://ib-user-accounts-backend-gamma-apis.ccbp.in"
 APP_ENV = "gamma"
-FIELD_VALUE = "Studying 10th Class"
 PROD_NIAT_API_BASE_URL = "https://ib-user-accounts-backend-prod-apis.ccbp.in"
 FIELD_ID = "69eb2b0c-a273-453c-9c86-b111b0ea41c9"
+NEW_USER_FIELD_VALUE = "Studying 10th Class"
+EXISTING_USER_FIELD_VALUE = "Degree"

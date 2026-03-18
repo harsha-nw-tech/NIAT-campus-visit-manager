@@ -2,7 +2,6 @@ import { Router } from "express";
 import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
 import {
   getSectionsCompletion,
-  updateSectionCompletion,
   generateDirectLink,
 } from "../services/niatClient.js";
 import { updateTemplate } from "../services/templateService.js";
@@ -86,21 +85,13 @@ router.post(
         return;
       }
 
-      const { bookedCampusVisitSectionId: bookedSectionId, visitedCampusSectionId: visitedSectionId } = getNiatConfig();
-      let niatUpdateSuccess = false;
+      let fieldUpdated = false;
       try {
-        await updateSectionCompletion(
-          userId,
-          applicationId,
-          visitedSectionId,
-          100,
-        );
-        niatUpdateSuccess = true;
-      } catch (niatErr: any) {
-        console.warn(
-          "Could not update NIAT completion (requires user auth):",
-          niatErr.message,
-        );
+        await updateTemplate(userId, applicationId);
+        fieldUpdated = true;
+        console.log(`[mark-visited] Field updated for userId: ${userId}`);
+      } catch (templateErr: any) {
+        console.warn(`[mark-visited] Field update failed (non-blocking):`, templateErr.message);
       }
 
       await db.insert(auditLogsTable).values({
@@ -115,7 +106,7 @@ router.post(
       res.json({
         success: true,
         message: "Campus visit marked successfully",
-        niatUpdated: niatUpdateSuccess,
+        fieldUpdated,
       });
     } catch (err: any) {
       console.error("Mark visited error:", err);

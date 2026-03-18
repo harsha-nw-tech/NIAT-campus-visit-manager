@@ -341,7 +341,7 @@ export default function SalesDashboard() {
                               className="w-full"
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Mark Campus Visited
+                              Confirm Campus Visit
                             </Button>
                           )}
                         </div>

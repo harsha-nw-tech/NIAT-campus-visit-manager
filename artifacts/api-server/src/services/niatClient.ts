@@ -10,6 +10,9 @@ const getConfig = () => {
     identity: cfg.identity,
     countryCode: cfg.countryCode,
     applicationUrl: cfg.applicationUrl,
+    bookedCampusVisitSectionId: cfg.bookedCampusVisitSectionId,
+    visitedCampusSectionId: cfg.visitedCampusSectionId,
+    personalDetailsSectionId: cfg.personalDetailsSectionId,
   };
 };
 
@@ -129,16 +132,16 @@ export async function getSectionsCompletion(
   const {
     baseUrl,
     clientKeyDetailsId,
-    bookedCampusVisitSectionId: bookedSectionId,
-    visitedCampusSectionId: visitedSectionId,
+    bookedCampusVisitSectionId,
+    visitedCampusSectionId,
+    personalDetailsSectionId,
     applicationName,
   } = getConfig();
-  const personalSectionId = process.env.PERSONAL_DETAILS_SECTION_ID;
 
   const sectionIds = [
-    personalSectionId,
-    bookedSectionId,
-    visitedSectionId,
+    bookedCampusVisitSectionId,
+    visitedCampusSectionId,
+    personalDetailsSectionId,
   ].filter(Boolean);
 
   const dataPayload = JSON.stringify({
@@ -230,7 +233,7 @@ export async function updateTemplateResponse(
   applicationId: string,
   data: object,
 ) {
-  const { baseUrl } = getConfig();
+  const { baseUrl, clientKeyDetailsId } = getConfig();
 
   console.log(
     "[updateTemplateResponse] applicationId:",
@@ -244,7 +247,10 @@ export async function updateTemplateResponse(
     {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        clientKeyDetailsId,
+        data,
+      }),
     },
   );
 
