@@ -118,7 +118,6 @@ export default function SalesDashboard() {
     mutation: {
       onSuccess: () => {
         toast({ title: "Success", description: "Campus marked as visited!" });
-        if (completionData) setCompletionData({ ...completionData, visitedCampus: 100 });
       },
       onError: (err: any) =>
         toast({ title: "Update Failed", description: err.message, variant: "destructive" }),
