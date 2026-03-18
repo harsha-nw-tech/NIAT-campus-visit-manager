@@ -20,7 +20,7 @@ seedAdminIfNeeded().catch((err) => {
   console.warn("Admin seed failed (may already exist):", err.message);
 });
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Server listening on port ${port}`);
   logConfig();
 });
