@@ -34,3 +34,7 @@ PROD_NIAT_API_BASE_URL = "https://ib-user-accounts-backend-prod-apis.ccbp.in"
 FIELD_ID = "69eb2b0c-a273-453c-9c86-b111b0ea41c9"
 NEW_USER_FIELD_VALUE = "Studying 10th Class"
 EXISTING_USER_FIELD_VALUE = "Degree"
+
+[[ports]]
+localPort = 22206
+externalPort = 80
