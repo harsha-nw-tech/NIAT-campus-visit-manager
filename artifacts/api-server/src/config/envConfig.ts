@@ -57,7 +57,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     fieldValue:                get("FIELD_VALUE"),
     existingUserFieldValue:    get("EXISTING_USER_FIELD_VALUE"),
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
-    visitedCampusSectionId:    get("VISITED_CAMPUS_SECTION_ID"),
+    visitedCampusSectionId:    get("NIAT_OFFICE_VISIT_SECTION_ID"),
     personalDetailsSectionId:  get("PERSONAL_DETAILS_SECTION_ID"),
     applicationName:           get("NIAT_APPLICATION_NAME", "NIAT_2026"),
     countryCode:               get("COUNTRY_CODE", "+91"),
