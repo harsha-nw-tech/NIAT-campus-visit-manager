@@ -230,7 +230,7 @@ export async function updateTemplateResponse(
   applicationId: string,
   data: object,
 ) {
-  const { baseUrl, clientKeyDetailsId } = getConfig();
+  const { baseUrl } = getConfig();
 
   console.log(
     "[updateTemplateResponse] applicationId:",
@@ -244,10 +244,7 @@ export async function updateTemplateResponse(
     {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({
-        clientKeyDetailsId,
-        data,
-      }),
+      body: JSON.stringify(data),
     },
   );
 
