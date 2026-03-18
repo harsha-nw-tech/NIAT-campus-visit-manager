@@ -18,6 +18,7 @@ const getTemplateConfig = () => {
 export async function updateTemplate(
   userId: string,
   applicationId: string,
+  fieldValueOverride?: string,
 ): Promise<void> {
   const { TEMPLATE_ID, SECTION_ID, FIELDS } = getTemplateConfig();
 
@@ -29,17 +30,23 @@ export async function updateTemplate(
       throw new Error("FIELD_ID is not configured — cannot update template");
     }
 
+    const resolvedValue = fieldValueOverride !== undefined ? fieldValueOverride : field.FIELD_VALUE;
+
+    if (!resolvedValue) {
+      throw new Error("FIELD_VALUE is empty — cannot update template");
+    }
+
     const payload = {
       user_id: userId,
       application_id: applicationId,
       template_id: TEMPLATE_ID,
       section_id: SECTION_ID,
       field_id: field.FIELD_ID,
-      field_value: field.FIELD_VALUE,
+      field_value: resolvedValue,
     };
 
     console.log(
-      `[updateTemplate] Updating field ${field.FIELD_ID} for user ${userId} application ${applicationId}`,
+      `[updateTemplate] Updating field ${field.FIELD_ID} for user ${userId} application ${applicationId} value: "${resolvedValue}"`,
     );
     await updateTemplateResponse(applicationId, payload);
     console.log(

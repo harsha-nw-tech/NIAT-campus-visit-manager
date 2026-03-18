@@ -138,6 +138,10 @@ export async function getSectionsCompletion(
     applicationName,
   } = getConfig();
 
+  if (!personalDetailsSectionId) {
+    console.warn("[getSectionsCompletion] PERSONAL_DETAILS_SECTION_ID is not set — section will be omitted");
+  }
+
   const sectionIds = [
     bookedCampusVisitSectionId,
     visitedCampusSectionId,
@@ -247,10 +251,7 @@ export async function updateTemplateResponse(
     {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({
-        clientKeyDetailsId,
-        data,
-      }),
+      body: JSON.stringify(data),
     },
   );
 

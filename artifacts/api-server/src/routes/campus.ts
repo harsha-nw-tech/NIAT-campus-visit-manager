@@ -88,9 +88,11 @@ router.post(
         return;
       }
 
+      const { existingUserFieldValue } = getNiatConfig();
+
       let fieldUpdated = false;
       try {
-        await updateTemplate(userId, applicationId);
+        await updateTemplate(userId, applicationId, existingUserFieldValue);
         fieldUpdated = true;
         console.log(`[mark-visited] Field updated for userId: ${userId}`);
       } catch (templateErr: any) {

@@ -15,6 +15,7 @@ export interface NiatConfig {
   sectionId: string;
   fieldId: string;
   fieldValue: string;
+  existingUserFieldValue: string;
   bookedCampusVisitSectionId: string;
   visitedCampusSectionId: string;
   personalDetailsSectionId: string;
@@ -54,6 +55,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     sectionId:                 get("SECTION_ID"),
     fieldId:                   get("FIELD_ID"),
     fieldValue:                get("FIELD_VALUE"),
+    existingUserFieldValue:    get("EXISTING_USER_FIELD_VALUE"),
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
     visitedCampusSectionId:    get("VISITED_CAMPUS_SECTION_ID"),
     personalDetailsSectionId:  get("PERSONAL_DETAILS_SECTION_ID"),
