@@ -54,7 +54,7 @@ function getEnvConfig(env: Environment): NiatConfig {
     templateId:                get("TEMPLATE_ID"),
     sectionId:                 get("SECTION_ID"),
     fieldId:                   get("FIELD_ID"),
-    fieldValue:                get("FIELD_VALUE"),
+    fieldValue:                get("NEW_USER_FIELD_VALUE"),
     existingUserFieldValue:    get("EXISTING_USER_FIELD_VALUE"),
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ID"),
     visitedCampusSectionId:    get("NIAT_OFFICE_VISIT_SECTION_ID"),
