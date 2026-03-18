@@ -138,15 +138,17 @@ export async function getSectionsCompletion(
     applicationName,
   } = getConfig();
 
-  if (!personalDetailsSectionId) {
-    console.warn("[getSectionsCompletion] PERSONAL_DETAILS_SECTION_ID is not set — section will be omitted");
+  const allSectionIds: Record<string, string> = {
+    BOOKED_CAMPUS_VISIT_SECTION_ID: bookedCampusVisitSectionId,
+    VISITED_CAMPUS_SECTION_ID: visitedCampusSectionId,
+    PERSONAL_DETAILS_SECTION_ID: personalDetailsSectionId,
+  };
+
+  for (const [key, val] of Object.entries(allSectionIds)) {
+    if (!val) console.warn(`[getSectionsCompletion] ${key} is not set — section will be omitted`);
   }
 
-  const sectionIds = [
-    bookedCampusVisitSectionId,
-    visitedCampusSectionId,
-    personalDetailsSectionId,
-  ].filter(Boolean);
+  const sectionIds = Object.values(allSectionIds).filter(Boolean);
 
   const dataPayload = JSON.stringify({
     user_id: userId,
