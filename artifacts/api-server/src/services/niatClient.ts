@@ -155,7 +155,7 @@ export async function getSectionsCompletion(
   );
 
   const res = await fetch(
-    `${baseUrl}/api/nw_application/applications/user_sections_completion/get/v1/`,
+    `${baseUrl}/api/nw_application/user/application/sections_completion/get/v1/`,
     {
       method: "POST",
       headers: getHeaders(),
@@ -165,7 +165,10 @@ export async function getSectionsCompletion(
       }),
     },
   );
-
+  console.log(
+    "[getSectionsCompletion] api:",
+    `${baseUrl}/api/nw_application/user/application/sections_completion/get/v1/`,
+  );
   const text = await res.text();
   console.log(`[getSectionsCompletion] status ${res.status}:`, text);
 
