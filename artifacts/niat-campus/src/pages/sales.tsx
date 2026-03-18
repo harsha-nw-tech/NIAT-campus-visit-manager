@@ -253,7 +253,7 @@ export default function SalesDashboard() {
                             className="text-xs font-mono px-2 py-0.5 rounded"
                             style={{ backgroundColor: "#F3F4F6", color: "#6B7280" }}
                           >
-                            App ID: {searchResult.applicationId}
+                            Application ID: {searchResult.applicationId}
                           </span>
                         }
                       />
@@ -288,11 +288,12 @@ export default function SalesDashboard() {
                       </div>
                     ) : completionData ? (
                       <div className="space-y-5">
-                        {completionData.completionAvailable && completionData.bookedCampusVisit != null && (
+                        {completionData.completionAvailable && completionData.personalDetails != null && (
                           <ProgressBar
-                            label="Application Progress"
-                            value={completionData.bookedCampusVisit}
-                            color="#B3261E"
+                            label="Personal Details"
+                            value={completionData.personalDetails}
+                            color={completionData.personalDetails >= 100 ? "#B3261E" : "#F59E0B"}
+                            valueColor={completionData.personalDetails >= 100 ? "#B3261E" : "#B45309"}
                           />
                         )}
                         {completionData.completionAvailable && completionData.visitedCampus != null && (

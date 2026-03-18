@@ -69,6 +69,7 @@ export interface GetCompletionRequest {
 export interface GetCompletionResponse {
   bookedCampusVisit: number | null;
   visitedCampus: number | null;
+  personalDetails: number | null;
   completionAvailable: boolean;
 }
 
