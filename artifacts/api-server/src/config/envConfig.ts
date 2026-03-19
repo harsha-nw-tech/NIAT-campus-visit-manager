@@ -62,31 +62,37 @@ function getEnvConfig(env: Environment): NiatConfig {
     get(specificKey) || get(sharedKey);
 
   return {
-    apiKey:                   get("NIAT_X_API_KEY"),
-    apiBaseUrl:               get("NIAT_API_BASE_URL"),
-    applicationUrl:           APPLICATION_URLS[env],
-    clientKeyDetailsId:       get("COMMON_DATA_CLIENT_KEY_DETAILS_ID"),
+    apiKey: get("NIAT_X_API_KEY"),
+    apiBaseUrl: get("NIAT_API_BASE_URL"),
+    applicationUrl: APPLICATION_URLS[env],
+    clientKeyDetailsId: get("COMMON_DATA_CLIENT_KEY_DETAILS_ID"),
 
     // New user (direct visit flow)
-    newUserTemplateId:        get("NEW_USER_TEMPLATE_ID"),
-    newUserSectionId:         get("NEW_USER_SECTION_ID"),
-    newUserFieldId:           get("NEW_USER_FIELD_ID"),
-    newUserFieldValue:        get("NEW_USER_FIELD_VALUE"),
+    newUserTemplateId: get("NEW_USER_TEMPLATE_ID"),
+    newUserSectionId: get("NEW_USER_SECTION_ID"),
+    newUserFieldId: get("NEW_USER_FIELD_ID"),
+    newUserFieldValue: get("NEW_USER_FIELD_VALUE"),
 
     // Existing user (mark visited flow) — falls back to shared TEMPLATE_ID / SECTION_ID / FIELD_ID
-    existingUserTemplateId:   getWithFallback("EXISTING_USER_TEMPLATE_ID", "TEMPLATE_ID"),
-    existingUserSectionId:    getWithFallback("EXISTING_USER_SECTION_ID", "SECTION_ID"),
-    existingUserFieldId:      getWithFallback("EXISTING_USER_FIELD_ID", "FIELD_ID"),
-    existingUserFieldValue:   get("EXISTING_USER_FIELD_VALUE"),
+    existingUserTemplateId: getWithFallback(
+      "EXISTING_USER_TEMPLATE_ID",
+      "TEMPLATE_ID",
+    ),
+    existingUserSectionId: getWithFallback(
+      "EXISTING_USER_SECTION_ID",
+      "SECTION_ID",
+    ),
+    existingUserFieldId: getWithFallback("EXISTING_USER_FIELD_ID", "FIELD_ID"),
+    existingUserFieldValue: get("EXISTING_USER_FIELD_VALUE"),
 
     // Section completion tracking
     bookedCampusVisitSectionId: get("BOOKED_CAMPUS_VISIT_SECTION_ENTITY_ID"),
-    officeVisitSectionId:       get("NIAT_OFFICE_VISIT_SECTION_ENTITY_ID"),
+    officeVisitSectionId: get("NIAT_OFFICE_VISIT_SECTION_ENTITY_ID"),
 
     // Shared
-    applicationName:          get("NIAT_APPLICATION_NAME", "NIAT_2026"),
-    countryCode:              get("COUNTRY_CODE", "+91"),
-    identity:                 get("NIAT_IDENTITY", "STUDENT"),
+    applicationName: get("NIAT_APPLICATION_NAME", "NIAT_2026"),
+    countryCode: get("COUNTRY_CODE", "+91"),
+    identity: get("NIAT_IDENTITY", "STUDENT"),
   };
 }
 
