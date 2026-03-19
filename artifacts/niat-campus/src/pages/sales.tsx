@@ -33,7 +33,9 @@ import { Button, Input, Badge } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 
 const searchSchema = z.object({
-  phoneNumber: z.string().min(5, "Valid phone number required"),
+  phoneNumber: z
+    .string()
+    .regex(/^\d{10}$/, "Enter a valid 10-digit phone number"),
 });
 
 export default function SalesDashboard() {
@@ -178,7 +180,14 @@ export default function SalesDashboard() {
             <input
               {...register("phoneNumber")}
               className="flex-1 text-sm bg-transparent border-none outline-none placeholder:text-[#9CA3AF] text-[#1F2937]"
-              placeholder="Enter phone number (e.g. +919876543210)"
+              placeholder="Enter 10-digit phone number"
+              type="tel"
+              maxLength={10}
+              onKeyDown={(e) => {
+                if (!/^\d$/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","Tab"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
             />
             <Button type="submit" isLoading={searchMutation.isPending} className="shrink-0">
               Search
