@@ -35,6 +35,7 @@ import { useQueryClient } from "@tanstack/react-query";
 const createSalesSchema = z.object({
   phoneNumber: z.string().min(5, "Valid phone number required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["sales", "admin"]),
 });
 type CreateSalesForm = z.infer<typeof createSalesSchema>;
 
@@ -78,6 +79,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab(tab.id)}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
+                  cursor: "pointer",
                   backgroundColor: active ? "#FFFFFF" : "transparent",
                   color: active ? "#B3261E" : "#6B7280",
                   boxShadow: active ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
@@ -118,15 +120,22 @@ function CreateSalesTab({ getHeaders, toast }: any) {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
-  } = useForm<CreateSalesForm>({ resolver: zodResolver(createSalesSchema) });
+  } = useForm<CreateSalesForm>({
+    resolver: zodResolver(createSalesSchema),
+    defaultValues: { role: "sales" },
+  });
+
+  const selectedRole = watch("role");
 
   const mutation = useCreateSales({
     request: { headers: getHeaders() },
     mutation: {
       onSuccess: () => {
-        toast({ title: "Account Created", description: "Sales user added successfully." });
-        reset();
+        toast({ title: "Account Created", description: `${selectedRole === "admin" ? "Admin" : "Sales"} user added successfully.` });
+        reset({ role: "sales" });
         queryClient.invalidateQueries({ queryKey: ["getSalesUsers"] });
         queryClient.invalidateQueries({ queryKey: ["getAllUsers"] });
       },
@@ -134,6 +143,11 @@ function CreateSalesTab({ getHeaders, toast }: any) {
         toast({ title: "Creation Failed", description: err.message, variant: "destructive" }),
     },
   });
+
+  const roles: { id: "sales" | "admin"; label: string; desc: string; icon: React.ElementType }[] = [
+    { id: "sales", label: "Sales User", desc: "Can look up students and generate visit links", icon: Users },
+    { id: "admin", label: "Admin", desc: "Full access including user management", icon: ShieldCheck },
+  ];
 
   return (
     <motion.div
@@ -150,10 +164,10 @@ function CreateSalesTab({ getHeaders, toast }: any) {
           <Plus className="w-6 h-6" style={{ color: "#B3261E" }} />
         </div>
         <h2 className="text-lg font-bold" style={{ color: "#1F2937" }}>
-          New Sales Account
+          New User Account
         </h2>
         <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
-          Provide credentials to grant platform access.
+          Select a role and provide credentials to grant platform access.
         </p>
       </div>
 
@@ -161,6 +175,47 @@ function CreateSalesTab({ getHeaders, toast }: any) {
         onSubmit={handleSubmit((d) => mutation.mutate({ data: d }))}
         className="space-y-5"
       >
+        {/* Role selection */}
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: "#374151" }}>
+            Role
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {roles.map(({ id, label, desc, icon: Icon }) => {
+              const active = selectedRole === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setValue("role", id)}
+                  className="text-left p-3.5 rounded-xl border-2 transition-all"
+                  style={{
+                    cursor: "pointer",
+                    borderColor: active ? "#B3261E" : "#E5E7EB",
+                    backgroundColor: active ? "#FFF1F1" : "#FAFAFA",
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon
+                      className="w-4 h-4"
+                      style={{ color: active ? "#B3261E" : "#6B7280" }}
+                    />
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: active ? "#B3261E" : "#1F2937" }}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-snug" style={{ color: "#6B7280" }}>
+                    {desc}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
             Phone Number (Login ID)
@@ -189,7 +244,7 @@ function CreateSalesTab({ getHeaders, toast }: any) {
           )}
         </div>
         <Button type="submit" className="w-full" isLoading={mutation.isPending}>
-          Create User
+          Create {selectedRole === "admin" ? "Admin" : "Sales User"}
         </Button>
       </form>
     </motion.div>
@@ -270,7 +325,7 @@ function SalesUsersTab({ getHeaders }: any) {
                 <button
                   onClick={() => togglePassword(u.id)}
                   className="shrink-0 transition-colors"
-                  style={{ color: "#9CA3AF" }}
+                  style={{ color: "#9CA3AF", cursor: "pointer" }}
                 >
                   {visiblePasswords.has(u.id) ? (
                     <EyeOff className="w-3.5 h-3.5" />
@@ -446,7 +501,7 @@ function CredentialsTab({ getHeaders, toast }: any) {
                       </span>
                       <button
                         onClick={() => togglePassword(u.id)}
-                        style={{ color: "#9CA3AF" }}
+                        style={{ color: "#9CA3AF", cursor: "pointer" }}
                       >
                         {visiblePasswords.has(u.id) ? (
                           <EyeOff className="w-3.5 h-3.5" />

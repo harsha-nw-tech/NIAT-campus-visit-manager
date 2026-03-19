@@ -517,9 +517,13 @@ components:
           type: string
         password:
           type: string
+        role:
+          type: string
+          enum: [sales, admin]
       required:
         - phoneNumber
         - password
+        - role
 
     SalesUsersResponse:
       type: object

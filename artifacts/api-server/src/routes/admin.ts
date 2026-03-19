@@ -12,12 +12,13 @@ router.post(
   requireRole("admin"),
   async (req: AuthRequest, res) => {
     try {
-      const { phoneNumber, password } = req.body;
+      const { phoneNumber, password, role } = req.body;
       if (!phoneNumber || !password) {
         res.status(400).json({ error: "Bad Request", message: "phoneNumber and password are required" });
         return;
       }
-      await createUser(phoneNumber, password, "sales");
+      const userRole: "admin" | "sales" = role === "admin" ? "admin" : "sales";
+      await createUser(phoneNumber, password, userRole);
       res.json({ success: true, message: "Sales user created successfully" });
     } catch (err: any) {
       console.error("Create sales error:", err);
