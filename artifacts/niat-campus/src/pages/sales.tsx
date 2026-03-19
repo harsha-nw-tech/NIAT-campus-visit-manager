@@ -263,7 +263,7 @@ export default function SalesDashboard() {
                           {updateFieldMutation.isPending ? "Registering visit…" : "Generating link…"}
                         </>
                       ) : (
-                        <><LinkIcon className="w-4 h-4 mr-2" />Mark Direct Visit</>
+                        <><LinkIcon className="w-4 h-4 mr-2" />Make Direct Visit</>
                       )}
                     </Button>
                   )}

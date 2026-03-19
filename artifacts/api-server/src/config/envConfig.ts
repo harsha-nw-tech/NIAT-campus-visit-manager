@@ -67,10 +67,10 @@ function getEnvConfig(env: Environment): NiatConfig {
     applicationUrl:           APPLICATION_URLS[env],
     clientKeyDetailsId:       get("COMMON_DATA_CLIENT_KEY_DETAILS_ID"),
 
-    // New user (direct visit flow) — falls back to shared TEMPLATE_ID / SECTION_ID / FIELD_ID
-    newUserTemplateId:        getWithFallback("NEW_USER_TEMPLATE_ID", "TEMPLATE_ID"),
-    newUserSectionId:         getWithFallback("NEW_USER_SECTION_ID", "SECTION_ID"),
-    newUserFieldId:           getWithFallback("NEW_USER_FIELD_ID", "FIELD_ID"),
+    // New user (direct visit flow)
+    newUserTemplateId:        get("NEW_USER_TEMPLATE_ID"),
+    newUserSectionId:         get("NEW_USER_SECTION_ID"),
+    newUserFieldId:           get("NEW_USER_FIELD_ID"),
     newUserFieldValue:        get("NEW_USER_FIELD_VALUE"),
 
     // Existing user (mark visited flow) — falls back to shared TEMPLATE_ID / SECTION_ID / FIELD_ID
