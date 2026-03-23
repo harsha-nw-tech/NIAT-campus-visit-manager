@@ -19,6 +19,15 @@ export const MOCK_USERS: Record<
     officeVisit: 0,
     scenario: "Booked campus visit, office visit NOT yet recorded → shows Confirm Campus Visit button",
   },
+  "0000000004": {
+    userId: "mock-user-004",
+    applicationId: "mock-app-004",
+    name: "Test User 2 — Booked Not Visited",
+    language: "HINDI",
+    bookedCampusVisit: 100,
+    officeVisit: 0,
+    scenario: "Booked campus visit, office visit NOT yet recorded → shows Confirm Campus Visit button",
+  },
   "0000000002": {
     userId: "mock-user-002",
     applicationId: "mock-app-002",
