@@ -55,11 +55,6 @@ export default function SalesDashboard() {
   } = useForm<{ phoneNumber: string }>({ resolver: zodResolver(searchSchema) });
 
   const phoneValue = watch("phoneNumber");
-  useEffect(() => {
-    setSearchResult(null);
-    setCompletionData(null);
-    setGeneratedUrl("");
-  }, [phoneValue]);
 
   const searchMutation = useSearchUser({
     request: { headers: getHeaders() },
@@ -126,6 +121,13 @@ export default function SalesDashboard() {
         toast({ title: "Update Failed", description: err.message, variant: "destructive" }),
     },
   });
+
+  useEffect(() => {
+    setSearchResult(null);
+    setCompletionData(null);
+    setGeneratedUrl("");
+    markVisitedMutation.reset();
+  }, [phoneValue]);
 
   const onSearch = (data: { phoneNumber: string }) => searchMutation.mutate({ data });
 
