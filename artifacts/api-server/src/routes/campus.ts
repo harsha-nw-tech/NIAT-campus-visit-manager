@@ -7,7 +7,6 @@ import {
 import { updateTemplate } from "../services/templateService.js";
 import { getNiatConfig } from "../config/envConfig.js";
 import { db, auditLogsTable } from "@workspace/db";
-import { getMockUser } from "../fixtures/mockData.js";
 
 const router = Router();
 
@@ -17,20 +16,6 @@ router.post("/get-completion", requireAuth, async (req: AuthRequest, res) => {
     const { applicationId, userId } = req.body;
     if (!applicationId || !userId) {
       res.status(400).json({ error: "Bad Request", message: "applicationId and userId are required" });
-      return;
-    }
-
-    const mockEntry = Object.values(
-      (await import("../fixtures/mockData.js")).MOCK_USERS
-    ).find((m) => m.userId === userId);
-
-    if (mockEntry) {
-      console.log(`[GET-COMPLETION] Mock data returned for userId: ${userId}`);
-      res.json({
-        bookedCampusVisit: mockEntry.bookedCampusVisit,
-        officeVisit: mockEntry.officeVisit,
-        completionAvailable: true,
-      });
       return;
     }
 
@@ -83,17 +68,6 @@ router.post(
           error: "Bad Request",
           message: "userId, applicationId, and phoneNumber are required",
         });
-        return;
-      }
-
-      const mockEntry = Object.values(
-        (await import("../fixtures/mockData.js")).MOCK_USERS
-      ).find((m) => m.userId === userId);
-
-      if (mockEntry) {
-        console.log(`[MARK-VISITED] Mock visit recorded for userId: ${userId} — skipping real API call`);
-        mockEntry.officeVisit = 100;
-        res.json({ success: true, message: "Campus visit marked successfully", fieldUpdated: true });
         return;
       }
 
