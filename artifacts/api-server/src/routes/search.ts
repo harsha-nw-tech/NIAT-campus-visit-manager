@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth, AuthRequest } from "../middlewares/auth.js";
 import { searchUserByPhone, getUserProfile } from "../services/niatClient.js";
+import { getMockUser } from "../fixtures/mockData.js";
 
 const router = Router();
 
@@ -11,6 +12,22 @@ router.post("/search-user", requireAuth, async (req: AuthRequest, res) => {
       res
         .status(400)
         .json({ error: "Bad Request", message: "phoneNumber is required" });
+      return;
+    }
+
+    const mock = getMockUser(phoneNumber);
+    if (mock) {
+      console.log(`[SEARCH] Mock data returned for test number: ${phoneNumber} — ${mock.scenario}`);
+      res.json({
+        isNewUser: false,
+        userId: mock.userId,
+        applicationId: mock.applicationId,
+        studentInfo: {
+          name: mock.name,
+          phone: phoneNumber,
+          language: mock.language,
+        },
+      });
       return;
     }
 
