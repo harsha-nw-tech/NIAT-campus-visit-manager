@@ -186,7 +186,11 @@ export default function SalesDashboard() {
               type="tel"
               maxLength={10}
               onKeyDown={(e) => {
-                if (!/^\d$/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","Tab"].includes(e.key)) {
+                if (
+                  !/^\d$/.test(e.key) &&
+                  !["Backspace","Delete","ArrowLeft","ArrowRight","Tab","Enter"].includes(e.key) &&
+                  !(e.ctrlKey || e.metaKey)
+                ) {
                   e.preventDefault();
                 }
               }}
