@@ -28,6 +28,8 @@ import {
   useGetAllUsers,
   useChangeCredentials,
   useDeleteUser,
+  getGetAllUsersQueryKey,
+  getGetSalesUsersQueryKey,
   AuditLogActionType,
 } from "@workspace/api-client-react";
 import { Button, Input, Badge } from "@/components/ui";
@@ -375,8 +377,8 @@ function CredentialsTab({ getHeaders, toast }: any) {
       onSuccess: () => {
         toast({ title: "Updated", description: "Credentials changed successfully." });
         setEditingId(null);
-        queryClient.invalidateQueries({ queryKey: ["getAllUsers"] });
-        queryClient.invalidateQueries({ queryKey: ["getSalesUsers"] });
+        queryClient.invalidateQueries({ queryKey: getGetAllUsersQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetSalesUsersQueryKey() });
       },
       onError: (err: any) =>
         toast({ title: "Update Failed", description: err.message, variant: "destructive" }),
@@ -389,8 +391,8 @@ function CredentialsTab({ getHeaders, toast }: any) {
       onSuccess: () => {
         toast({ title: "Deleted", description: "User removed successfully." });
         setConfirmDeleteUser(null);
-        queryClient.invalidateQueries({ queryKey: ["getAllUsers"] });
-        queryClient.invalidateQueries({ queryKey: ["getSalesUsers"] });
+        queryClient.invalidateQueries({ queryKey: getGetAllUsersQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetSalesUsersQueryKey() });
       },
       onError: (err: any) =>
         toast({ title: "Delete Failed", description: err.message, variant: "destructive" }),
