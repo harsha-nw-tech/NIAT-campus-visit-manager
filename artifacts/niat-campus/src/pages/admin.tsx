@@ -364,6 +364,7 @@ function SalesUsersTab({ getHeaders }: any) {
 // ─── Credentials Tab ──────────────────────────────────────────────────────────
 function CredentialsTab({ getHeaders, toast }: any) {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ phoneNumber: "", password: "" });
   const [visiblePasswords, setVisiblePasswords] = useState<Set<number>>(new Set());
@@ -542,14 +543,16 @@ function CredentialsTab({ getHeaders, toast }: any) {
                     <Button size="sm" variant="outline" onClick={() => startEdit(u)}>
                       <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setConfirmDeleteUser({ id: u.id, phoneNumber: u.phoneNumber })}
-                      style={{ color: "#EF4444", borderColor: "#FCA5A5" }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    {u.id !== currentUser?.id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setConfirmDeleteUser({ id: u.id, phoneNumber: u.phoneNumber })}
+                        style={{ color: "#EF4444", borderColor: "#FCA5A5" }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
