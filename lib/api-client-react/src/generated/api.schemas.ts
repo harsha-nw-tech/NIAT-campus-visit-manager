@@ -93,9 +93,18 @@ export interface UpdateUserFieldRequest {
   applicationId: string;
 }
 
+export type CreateSalesRequestRole =
+  (typeof CreateSalesRequestRole)[keyof typeof CreateSalesRequestRole];
+
+export const CreateSalesRequestRole = {
+  sales: "sales",
+  admin: "admin",
+} as const;
+
 export interface CreateSalesRequest {
   phoneNumber: string;
   password: string;
+  role: CreateSalesRequestRole;
 }
 
 export interface SalesUsersResponse {
@@ -143,6 +152,10 @@ export interface ChangeCredentialsRequest {
   id: number;
   phoneNumber: string;
   password: string;
+}
+
+export interface DeleteUserRequest {
+  id: number;
 }
 
 export type GetLogsParams = {

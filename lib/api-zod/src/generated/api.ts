@@ -112,6 +112,7 @@ export const UpdateUserFieldResponse = zod.object({
 export const CreateSalesBody = zod.object({
   phoneNumber: zod.string(),
   password: zod.string(),
+  role: zod.enum(["sales", "admin"]),
 });
 
 export const CreateSalesResponse = zod.object({
@@ -156,6 +157,18 @@ export const ChangeCredentialsBody = zod.object({
 });
 
 export const ChangeCredentialsResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Delete a user (admin only)
+ */
+export const DeleteUserBody = zod.object({
+  id: zod.number(),
+});
+
+export const DeleteUserResponse = zod.object({
   success: zod.boolean(),
   message: zod.string(),
 });

@@ -11,6 +11,8 @@ export * from "./auditLog";
 export * from "./auditLogActionType";
 export * from "./changeCredentialsRequest";
 export * from "./createSalesRequest";
+export * from "./createSalesRequestRole";
+export * from "./deleteUserRequest";
 export * from "./errorResponse";
 export * from "./generateLinkRequest";
 export * from "./generateLinkResponse";

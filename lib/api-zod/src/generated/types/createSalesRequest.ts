@@ -5,9 +5,10 @@
  * NIAT Campus Visit Manager API
  * OpenAPI spec version: 0.1.0
  */
+import type { CreateSalesRequestRole } from "./createSalesRequestRole";
 
 export interface CreateSalesRequest {
   phoneNumber: string;
   password: string;
-  role: "sales" | "admin";
+  role: CreateSalesRequestRole;
 }

@@ -20,6 +20,7 @@ import type {
   AllUsersResponse,
   ChangeCredentialsRequest,
   CreateSalesRequest,
+  DeleteUserRequest,
   ErrorResponse,
   GenerateLinkRequest,
   GenerateLinkResponse,
@@ -958,6 +959,92 @@ export const useChangeCredentials = <
   TContext
 > => {
   return useMutation(getChangeCredentialsMutationOptions(options));
+};
+
+/**
+ * @summary Delete a user (admin only)
+ */
+export const getDeleteUserUrl = () => {
+  return `/api/admin/delete-user`;
+};
+
+export const deleteUser = async (
+  deleteUserRequest: DeleteUserRequest,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDeleteUserUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(deleteUserRequest),
+  });
+};
+
+export const getDeleteUserMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteUser>>,
+    TError,
+    { data: BodyType<DeleteUserRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteUser>>,
+  TError,
+  { data: BodyType<DeleteUserRequest> },
+  TContext
+> => {
+  const mutationKey = ["deleteUser"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteUser>>,
+    { data: BodyType<DeleteUserRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return deleteUser(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteUserMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteUser>>
+>;
+export type DeleteUserMutationBody = BodyType<DeleteUserRequest>;
+export type DeleteUserMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a user (admin only)
+ */
+export const useDeleteUser = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteUser>>,
+    TError,
+    { data: BodyType<DeleteUserRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteUser>>,
+  TError,
+  { data: BodyType<DeleteUserRequest> },
+  TContext
+> => {
+  return useMutation(getDeleteUserMutationOptions(options));
 };
 
 /**

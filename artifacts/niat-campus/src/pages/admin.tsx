@@ -17,6 +17,7 @@ import {
   X,
   Check,
   UserCircle,
+  Trash2,
 } from "lucide-react";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
@@ -26,9 +27,20 @@ import {
   useGetLogs,
   useGetAllUsers,
   useChangeCredentials,
+  useDeleteUser,
   AuditLogActionType,
 } from "@workspace/api-client-react";
 import { Button, Input, Badge } from "@/components/ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -353,6 +365,7 @@ function CredentialsTab({ getHeaders, toast }: any) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ phoneNumber: "", password: "" });
   const [visiblePasswords, setVisiblePasswords] = useState<Set<number>>(new Set());
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState<{ id: number; phoneNumber: string } | null>(null);
 
   const { data, isLoading } = useGetAllUsers({ request: { headers: getHeaders() } });
 
@@ -367,6 +380,20 @@ function CredentialsTab({ getHeaders, toast }: any) {
       },
       onError: (err: any) =>
         toast({ title: "Update Failed", description: err.message, variant: "destructive" }),
+    },
+  });
+
+  const deleteMutation = useDeleteUser({
+    request: { headers: getHeaders() },
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Deleted", description: "User removed successfully." });
+        setConfirmDeleteUser(null);
+        queryClient.invalidateQueries({ queryKey: ["getAllUsers"] });
+        queryClient.invalidateQueries({ queryKey: ["getSalesUsers"] });
+      },
+      onError: (err: any) =>
+        toast({ title: "Delete Failed", description: err.message, variant: "destructive" }),
     },
   });
 
@@ -513,6 +540,14 @@ function CredentialsTab({ getHeaders, toast }: any) {
                     <Button size="sm" variant="outline" onClick={() => startEdit(u)}>
                       <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmDeleteUser({ id: u.id, phoneNumber: u.phoneNumber })}
+                      style={{ color: "#EF4444", borderColor: "#FCA5A5" }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
               )}
@@ -520,6 +555,41 @@ function CredentialsTab({ getHeaders, toast }: any) {
           ))}
         </div>
       )}
+
+      <AlertDialog
+        open={!!confirmDeleteUser}
+        onOpenChange={(open) => { if (!open) setConfirmDeleteUser(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{confirmDeleteUser?.phoneNumber}</span>? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDeleteUser) {
+                  deleteMutation.mutate({ data: { id: confirmDeleteUser.id } });
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              style={{ backgroundColor: "#EF4444" }}
+            >
+              {deleteMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-1" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
 import { createUser, updateUserCredentials } from "../services/authService.js";
 import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 
 const router = Router();
 
@@ -112,6 +112,35 @@ router.post(
       } else {
         res.status(400).json({ error: "Failed", message: err.message });
       }
+    }
+  }
+);
+
+// Delete a user (admin or sales) — cannot delete yourself
+router.post(
+  "/admin/delete-user",
+  requireAuth,
+  requireRole("admin"),
+  async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.body;
+      if (!id) {
+        res.status(400).json({ error: "Bad Request", message: "id is required" });
+        return;
+      }
+      if (req.user?.id === Number(id)) {
+        res.status(400).json({ error: "Bad Request", message: "You cannot delete your own account" });
+        return;
+      }
+      const deleted = await db.delete(usersTable).where(eq(usersTable.id, Number(id))).returning();
+      if (!deleted.length) {
+        res.status(404).json({ error: "Not Found", message: "User not found" });
+        return;
+      }
+      res.json({ success: true, message: "User deleted successfully" });
+    } catch (err: any) {
+      console.error("Delete user error:", err);
+      res.status(500).json({ error: "Failed", message: err.message });
     }
   }
 );
