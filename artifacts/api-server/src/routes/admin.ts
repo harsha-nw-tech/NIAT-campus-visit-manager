@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requireAuth, requireRole, AuthRequest } from "../middlewares/auth.js";
 import { createUser, updateUserCredentials } from "../services/authService.js";
 import { db, usersTable } from "@workspace/db";
-import { eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -128,7 +128,7 @@ router.post(
         res.status(400).json({ error: "Bad Request", message: "id is required" });
         return;
       }
-      if (req.user?.id === Number(id)) {
+      if (req.user?.userId === Number(id)) {
         res.status(400).json({ error: "Bad Request", message: "You cannot delete your own account" });
         return;
       }
